@@ -1,0 +1,12 @@
+node_modules/
+.npm-cache/
+dist/
+*.local
+*.tsbuildinfo
+qa/*.png
+qa/*.jpg
+.env
+.env.*
+!.env.example
+*.log
+qa/lighthouse*.json

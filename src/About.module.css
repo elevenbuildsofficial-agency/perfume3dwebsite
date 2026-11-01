@@ -1,0 +1,5 @@
+.about{position:relative;min-height:100svh;color:#29372d;background:#f0ede3;font-family:var(--font);overflow-x:clip}
+.about>header{color:#29372d}
+.about>header>div{background:linear-gradient(135deg,#fffffff0,#f4f4edb8 55%,#f6f4e6d9)}
+.skip{position:fixed;left:24px;top:-90px;z-index:25;padding:15px 22px;background:#29372d;color:#f0ede3;border-radius:30px;font-size:13px}
+.skip:focus{top:95px}

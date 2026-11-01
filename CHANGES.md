@@ -1,6 +1,8 @@
 > Latest direction: keep the restored smooth continuous cap/bottle choreography and transparent wordmark, using clean landscape/portrait plates edited from the realistic generated Mediterranean scene. Baked-in bottles, their shadows and caustics are removed from the plate to avoid duplication. About remains separate.
 >
 > Added premium transparent photographs for all three flacons, registered cap-on/cap-off/cap layers, real-looking machined brass atomisers and spray apertures, thick glass reflections, liquid menisci, wood grain and stone bounce. Glass/label pixels below the collar are shared between states to prevent regeneration flicker. Actual bottle/cap alpha silhouettes now project coloured multiply shadows on the stone, with separate tight contact AO and a rising cap shadow. Reflections are photographic rather than live ray-traced geometry. Build, cinematic reversal/reduced-motion checks, content checks and 120 raster layout checks (now using the active home PNGs) pass.
+>
+> Added chapter-positioned soft reading light: left for First Light/Wild Ground, right for Velvet Hour, and below products on phones. It follows the existing scroll state so richer garden foliage does not obscure copy. Nine delivered WebP product layers total 1.33 MB; registered PNG masters remain available.
 
 > Current revision: restored the smooth continuous bottle animation from 86ee453 at the user's request. The hero wordmark has no background, border, shadow or backdrop filter. The still-film experiment and video handoff below are retained as historical/reference material, not the active home renderer.
 

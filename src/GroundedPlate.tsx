@@ -24,6 +24,11 @@ export default function GroundedPlate({story,reduced}:{story:MutableRefObject<St
         const inHero=!s.reduced&&(s.scroll??0)<.30;
         node.style.setProperty('--hero-opacity',String(inHero?1-beat.dissolve:0));
         node.style.setProperty('--world-opacity',String(inHero?beat.dissolve:1));
+        const weight=(chapter:number)=>Math.max(0,1-Math.abs(s.stage-chapter));
+        const left=Math.max(weight(1),weight(3)),right=weight(2);
+        node.style.setProperty('--copy-left',String(inHero?0:left));
+        node.style.setProperty('--copy-right',String(inHero?0:right));
+        node.style.setProperty('--copy-mobile',String(inHero?0:Math.max(left,right)));
       }
       frame=requestAnimationFrame(animate);
     };
@@ -33,5 +38,6 @@ export default function GroundedPlate({story,reduced}:{story:MutableRefObject<St
   return <div ref={root} className={styles.plate} data-reduced={reduced} aria-hidden="true" style={{'--garden-desktop':'url("/images/morrow-generated-garden.webp")','--garden-mobile':'url("/images/morrow-generated-garden-mobile.webp")'} as CSSProperties}>
     {[false,true].map(hero=><div key={String(hero)} className={`${styles.world} ${hero?styles.hero:styles.destination}`}><div className={styles.photograph}/></div>)}
     <div className={styles.readingLight}/>
+    <div className={styles.copyLightLeft}/><div className={styles.copyLightRight}/><div className={styles.copyLightMobile}/>
   </div>;
 }

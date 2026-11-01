@@ -8,10 +8,11 @@
     "build": "tsc -b && vite build",
     "check:content": "node qa/check-content.mjs",
     "check:layout": "node qa/check-collection-layout.mjs",
-    "check:cinematic": "node qa/check-cinematic.mjs",
+    "check:cinematic": "node qa/check-film.mjs",
     "prepare:assets": "node scripts/prepare-product-assets.mjs",
     "render:background": "node scripts/render-background-loop.mjs",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "frames": "node scripts/extract-frames.mjs"
   },
   "dependencies": {
     "@fontsource-variable/outfit": "^5.2.8",

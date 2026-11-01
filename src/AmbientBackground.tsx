@@ -2,13 +2,8 @@ import { useEffect, useRef, useState, type MutableRefObject, type CSSProperties 
 import { content } from './content';
 import type { StoryState } from './story';
 import styles from './AmbientBackground.module.css';
-import GroundedPlate from './GroundedPlate';
 
-export default function AmbientBackground({story,reduced,grounded=false}:{story:MutableRefObject<StoryState>;reduced:boolean;grounded?:boolean}) {
-  return grounded?<GroundedPlate story={story} reduced={reduced}/>:<OrchardBackground story={story} reduced={reduced}/>;
-}
-
-function OrchardBackground({ story, reduced }: { story: MutableRefObject<StoryState>; reduced: boolean }) {
+export default function AmbientBackground({ story, reduced }: { story: MutableRefObject<StoryState>; reduced: boolean }) {
   const background = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const [videoEnabled, setVideoEnabled] = useState(false);

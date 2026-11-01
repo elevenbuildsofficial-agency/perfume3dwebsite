@@ -1,49 +1,23 @@
-# Morrow bottle assets
+# Missing motion assets
 
-The current build uses the existing transparent photographic WebPs. It separates
-the photographed wooden caps at registered cut lines and draws a small brass
-atomiser behind them. This preserves the original product design, but the hidden
-nozzle and cap underside are approximations, not recovered photography. The
-two-dimensional lens move cannot reveal a new viewing angle through the glass.
+All 18 whole-scene PNG stills are supplied in public/source/frames (nine named shots × 16x9/9x16). Original product references are in public/source/refs. Frame prompts are in prompts/frames. Built-in image generation was used; no video model was called.
 
-## Exactly what is missing
+The player is intentionally in still-keyframe cross-dissolve mode. Continuous cap travel, exact camera motion and temporally consistent glass are NOT complete until these ten files are supplied:
 
-For each product, provide **either** its GLB **or** all three registered PNGs.
-None of these files exists in the current checkout:
+- public/source/hero-captlift-16x9.mp4
+- public/source/hero-captlift-9x16.mp4
+- public/source/hero-pushin-16x9.mp4
+- public/source/hero-pushin-9x16.mp4
+- public/source/first-light-16x9.mp4
+- public/source/first-light-9x16.mp4
+- public/source/velvet-hour-16x9.mp4
+- public/source/velvet-hour-9x16.mp4
+- public/source/wild-ground-16x9.mp4
+- public/source/wild-ground-9x16.mp4
 
-| Product | Preferred GLB | Alternative PNG layers (all three) |
-| --- | --- | --- |
-| First Light | `public/models/first-light.glb` | `public/bottles/first-light-capon.png`, `public/bottles/first-light-capoff.png`, `public/bottles/first-light-cap.png` |
-| Velvet Hour | `public/models/velvet-hour.glb` | `public/bottles/velvet-hour-capon.png`, `public/bottles/velvet-hour-capoff.png`, `public/bottles/velvet-hour-cap.png` |
-| Wild Ground | `public/models/wild-ground.glb` | `public/bottles/wild-ground-capon.png`, `public/bottles/wild-ground-capoff.png`, `public/bottles/wild-ground-cap.png` |
+Each prompts/video/<clip>.txt specifies exact first/last PNG filenames, duration, output name and rejection checklist. Generate with first/last-frame control; reject warped label text, changed silhouettes, cap intersections, smoky vapour, clipped cap/navigation framing or inconsistent exposure. Preserve a quiet upper navigation zone and bottom reading zone, especially in portrait.
 
-GLBs need separate nodes named `body` and `cap`; `nozzle` is optional. Name
-materials with `glass`, `liquid`, `brass`/`metal` and `wood` so the PBR adapter
-can apply the corresponding transmission, absorption and roughness. Keep the
-product upright and preserve its natural proportions. The GLB adapter renders
-registered body and cap passes using an environment derived from the orchard
-plate, with a warm sun and stone bounce. The photographic compositor owns the
-shared contact/cast shadows and lens transition.
+After adding MP4s, run npm run frames, then npm run build. The importer writes public/frames/manifest.json and 0001.webp…0120.webp in each clip/desktop or clip/mobile directory. Existing complete sets are detected automatically by the player. The bare <clip>.mp4 name is also accepted for desktop; portrait needs the -9x16 name. No component change is required.
 
-PNG layers must all have identical dimensions and registration: the cap-only PNG
-retains its position on the full bottle canvas, and the cap-off PNG includes the
-actual nozzle, collar, internal glass and liquid. Avoid baked floor shadows.
-Use the current product canvas and cap positions as the registration reference
-(`src/bottleAssets.ts`).
-
-## Swap
-
-`src/bottleAssets.ts`: `export const BOTTLE_SOURCE: 'auto' | 'photo' = 'auto';`
-
-That single setting enables automatic selection: named GLB → complete PNG set →
-original photograph. Add the files, then restart Vite or run `npm run build`.
-No component or timeline change is necessary. Set the same line to `'photo'`
-to pin the original photography. Invalid replacement assets fall back safely.
-
-## Plate
-
-`public/images/morrow-orchard.webp` is the existing clean, bottle-free plate.
-The home scene uses that photograph directly, rather than the independently
-moving video plate, so the stone and bottles share one coordinate system. Hills,
-trees, stone and foreground foliage use separate depth transforms. The About
-story retains its existing cinematic composition and copy.
+The extractor targets 1600px desktop / 800px mobile and starts WebP quality at 75. It retries compression to enforce a 2.9MB per-clip budget (five desktop sequences below 15MB total), and fails explicitly if that cannot be met. These quality/size constraints must be re-evaluated on the delivered motion.
+Identical decoded frames are deduplicated. The manifest retains all logical frame positions and maps them to canonical WebP files, so repeated frames need not occupy duplicate files or downloads.

@@ -1,0 +1,18 @@
+Slow push-in on wine-red faceted dark walnut bottle. Dusk amber light and deep shadows. Cap lifts and tilts, fine mist rises; finish filled with burgundy mist.
+Realistic glass refraction and reflections. Constant bottle shapes, labels and proportions. No cuts, morphing, warping, extra objects or camera shake. Mist must not look like smoke.
+Duration: 5–6 seconds.
+FORMAT 16x9
+FIRST FRAME: public/source/frames/velvet-hour-A-16x9.png
+LAST FRAME: public/source/frames/velvet-hour-B-16x9.png
+SAVE OUTPUT: public/source/velvet-hour-16x9.mp4
+
+FORMAT 9x16
+FIRST FRAME: public/source/frames/velvet-hour-A-9x16.png
+LAST FRAME: public/source/frames/velvet-hour-B-9x16.png
+SAVE OUTPUT: public/source/velvet-hour-9x16.mp4
+
+CHECKLIST
+- Check label text for warping.
+- Check bottle shape stays constant.
+- Retry if cap passes through the bottle.
+- Retry if mist looks like smoke.

@@ -1,0 +1,18 @@
+Slow push-in on tall olive light oak bottle. Green dappled shade with narrow sun shafts. Cap lifts and tilts, fine mist rises; finish filled with green mist.
+Realistic glass refraction and reflections. Constant bottle shapes, labels and proportions. No cuts, morphing, warping, extra objects or camera shake. Mist must not look like smoke.
+Duration: 5–6 seconds.
+FORMAT 16x9
+FIRST FRAME: public/source/frames/wild-ground-A-16x9.png
+LAST FRAME: public/source/frames/wild-ground-B-16x9.png
+SAVE OUTPUT: public/source/wild-ground-16x9.mp4
+
+FORMAT 9x16
+FIRST FRAME: public/source/frames/wild-ground-A-9x16.png
+LAST FRAME: public/source/frames/wild-ground-B-9x16.png
+SAVE OUTPUT: public/source/wild-ground-9x16.mp4
+
+CHECKLIST
+- Check label text for warping.
+- Check bottle shape stays constant.
+- Retry if cap passes through the bottle.
+- Retry if mist looks like smoke.

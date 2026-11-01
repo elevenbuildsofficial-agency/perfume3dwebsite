@@ -1,6 +1,0 @@
-.canvas{position:absolute;inset:0;display:block;width:100%;height:100%}
-.shadows{mix-blend-mode:multiply}
-.fallback{position:absolute;inset:0;pointer-events:none}
-.fallback img{position:absolute;object-fit:contain;transform:translate(-50%,-50%)}
-.finish{position:absolute;inset:0;pointer-events:none;background:linear-gradient(112deg,#ffdf9b08,transparent 47%,#44533b08);mix-blend-mode:soft-light}
-.grain{position:absolute;inset:0;opacity:.055;pointer-events:none;mix-blend-mode:soft-light;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.83' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23808080' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E")}

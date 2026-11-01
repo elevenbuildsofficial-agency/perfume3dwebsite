@@ -50,7 +50,7 @@ export const content = {
     title: 'Morrow — Three scents. One instinct.',
     description: 'Discover First Light, Velvet Hour and Wild Ground. Three independent eaux de parfum with sculptural glass and natural wooden caps. Find your scent.',
     locale: 'en_US',
-    siteUrl: '', // Set your production origin here, e.g. https://morrow.example.
+    siteUrl: 'https://perfume3dwebsite.vercel.app',
     image: '/images/morrow-collection.jpg',
   },
   nav: [{ label: 'The collection', section: 0 }, { label: 'The scents', section: 1 }, { label: 'Make it yours', section: 4 }],

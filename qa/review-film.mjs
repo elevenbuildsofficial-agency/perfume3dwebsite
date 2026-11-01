@@ -1,0 +1,2 @@
+import sharp from 'sharp';
+for(const width of [390,1440]){const files=[0,10,20,35,50,65].map(p=>`qa/film-${width}-${p}.png`);const images=await Promise.all(files.map(file=>sharp(file).resize({width:width===390?420:600}).toBuffer()));const meta=await sharp(images[0]).metadata(),w=meta.width,h=meta.height;await sharp({create:{width:w*3,height:h*2,channels:3,background:'#222'}}).composite(images.map((input,i)=>({input,left:(i%3)*w,top:Math.floor(i/3)*h}))).jpeg({quality:85}).toFile(`qa/film-audit-${width}.jpg`);}

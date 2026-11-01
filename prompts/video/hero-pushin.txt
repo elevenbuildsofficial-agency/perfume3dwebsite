@@ -1,0 +1,18 @@
+Camera slowly pushes in and down toward brass nozzle. Cap exits top; depth of field narrows, companions become colour blur; warm backlit mist fills frame.
+Realistic glass refraction and reflections. Constant bottle shapes, labels and proportions. No cuts, morphing, warping, extra objects or camera shake. Mist must not look like smoke.
+Duration: 5–6 seconds.
+FORMAT 16x9
+FIRST FRAME: public/source/frames/hero-B-16x9.png
+LAST FRAME: public/source/frames/hero-C-16x9.png
+SAVE OUTPUT: public/source/hero-pushin-16x9.mp4
+
+FORMAT 9x16
+FIRST FRAME: public/source/frames/hero-B-9x16.png
+LAST FRAME: public/source/frames/hero-C-9x16.png
+SAVE OUTPUT: public/source/hero-pushin-9x16.mp4
+
+CHECKLIST
+- Check label text for warping.
+- Check bottle shape stays constant.
+- Retry if cap passes through the bottle.
+- Retry if mist looks like smoke.

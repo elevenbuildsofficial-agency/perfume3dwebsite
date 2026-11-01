@@ -2,20 +2,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { content } from './src/content';
 import { fileURLToPath } from 'node:url';
-import { existsSync } from 'node:fs';
 
 const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 export default defineConfig({
-  define: {
-    __MORROW_BOTTLES__: JSON.stringify(content.products.map(product => {
-      const has = (url: string) => existsSync(fileURLToPath(new URL(`./public${url}`, import.meta.url)));
-      const model = `/models/${product.id}.glb`;
-      const capon = `/bottles/${product.id}-capon.png`, capoff = `/bottles/${product.id}-capoff.png`, cap = `/bottles/${product.id}-cap.png`;
-      return has(model) ? { mode: 'glb', model, capon: product.image }
-        : [capon, capoff, cap].every(has) ? { mode: 'layers', capon, capoff, cap }
-        : { mode: 'photo', capon: product.image };
-    })),
-  },
   plugins: [react(), {
     name: 'content-metadata',
     transformIndexHtml(_html, context) {

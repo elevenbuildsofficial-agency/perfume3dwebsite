@@ -10,3 +10,4 @@ qa/*.jpg
 !.env.example
 *.log
 qa/lighthouse*.json
+qa/film-pipeline-fixture/

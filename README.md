@@ -1,3 +1,9 @@
+# Current film build
+
+Home now uses a complete-scene canvas sequence player. All 18 stills and their prompts are included. Continuous motion awaits ten source MP4s; see [ASSETS_NEEDED.md](ASSETS_NEEDED.md). Add clips to public/source, run npm run frames, then npm run build. Review [CHANGES.md](CHANGES.md), [AUDIT.md](AUDIT.md) and src/sequence.ts. About retains its existing separate story.
+
+---
+
 # Morrow — three perfume products
 
 A local fragrance collection inspired by the photographic finish of [SYKÉA](https://www.scrolltide.co/templates/sykea). Three original designs replace the earlier simplified bottle: First Light, Velvet Hour, and Wild Ground.

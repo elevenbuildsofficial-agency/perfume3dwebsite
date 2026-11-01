@@ -1,0 +1,18 @@
+Locked-off camera. Centre wooden cap rises smoothly and tilts. Shadow moves and softens, brass glint travels, fine mist rises. Leaf shadows drift.
+Realistic glass refraction and reflections. Constant bottle shapes, labels and proportions. No cuts, morphing, warping, extra objects or camera shake. Mist must not look like smoke.
+Duration: 6–8 seconds.
+FORMAT 16x9
+FIRST FRAME: public/source/frames/hero-A-16x9.png
+LAST FRAME: public/source/frames/hero-B-16x9.png
+SAVE OUTPUT: public/source/hero-captlift-16x9.mp4
+
+FORMAT 9x16
+FIRST FRAME: public/source/frames/hero-A-9x16.png
+LAST FRAME: public/source/frames/hero-B-9x16.png
+SAVE OUTPUT: public/source/hero-captlift-9x16.mp4
+
+CHECKLIST
+- Check label text for warping.
+- Check bottle shape stays constant.
+- Retry if cap passes through the bottle.
+- Retry if mist looks like smoke.

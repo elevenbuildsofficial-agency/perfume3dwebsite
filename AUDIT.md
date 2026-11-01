@@ -1,3 +1,5 @@
+> Current revision: restored the smooth continuous bottle animation from 86ee453 at the user's request. The hero wordmark has no background, border, shadow or backdrop filter. The still-film experiment and video handoff below are retained as historical/reference material, not the active home renderer.
+
 # Morrow film audit
 
 ## Method and limits

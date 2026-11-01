@@ -1,3 +1,5 @@
+> Current revision: restored the smooth continuous bottle animation from 86ee453 at the user's request. The hero wordmark has no background, border, shadow or backdrop filter. The still-film experiment and video handoff below are retained as historical/reference material, not the active home renderer.
+
 # Morrow photographed-film rebuild
 
 Assumptions: preserve the three product identities, copy, prices, nav and reservation/bag behavior. The brief explicitly overrides old generic hero description and asks to remove decorative labels and arrows. Existing reference originals are copied to public/source/refs. There are no source motion clips. Generate whole-scene stills with the built-in image tool; use still cross-dissolves, clearly documented as provisional, until user-supplied first/last-frame MP4s arrive. No cutouts, procedural sprayers, fake blur or butterfly/parallax layers in the new home renderer. About retains its separate existing story.

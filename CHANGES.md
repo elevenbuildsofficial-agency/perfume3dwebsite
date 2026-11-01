@@ -1,3 +1,5 @@
+> Current revision: restored the smooth continuous bottle animation from 86ee453 at the user's request. The hero wordmark has no background, border, shadow or backdrop filter. The still-film experiment and video handoff below are retained as historical/reference material, not the active home renderer.
+
 # Morrow whole-scene film rebuild
 
 Replaced the home cutout compositor with one fixed canvas drawing complete photographed scene frames. Removed the home procedural model renderer, photo-sprite layers, nozzle approximation, butterfly sprites, CSS blur and ledge parallax modules. About retains its separate existing story and assets.

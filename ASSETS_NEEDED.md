@@ -1,3 +1,5 @@
+> Current revision: restored the smooth continuous bottle animation from 86ee453 at the user's request. The hero wordmark has no background, border, shadow or backdrop filter. The still-film experiment and video handoff below are retained as historical/reference material, not the active home renderer.
+
 # Missing motion assets
 
 All 18 whole-scene PNG stills are supplied in public/source/frames (nine named shots × 16x9/9x16). Original product references are in public/source/refs. Frame prompts are in prompts/frames. Built-in image generation was used; no video model was called.

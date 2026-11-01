@@ -1,0 +1,25 @@
+.plate{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#e4e7dc}
+.world{position:absolute;inset:0;transform-origin:0 0}
+.hero{opacity:var(--hero-opacity,1);transform:var(--hero-transform,none)}
+.destination{opacity:var(--world-opacity,0)}
+.far,.trees{position:absolute;inset:-24px;background-image:var(--plate);background-size:cover;background-position:center}
+.far{filter:blur(1.1px);transform:var(--far-transform,none)}
+.trees{clip-path:polygon(0 43%,100% 38%,100% 100%,0 100%);mask-image:linear-gradient(transparent 38%,#000 54%);transform:var(--trees-transform,none)}
+/* Reframe the clean plate's stone foreground as the tabletop/ledge plane.
+   Both the bottle compositor and this layer use exactly the same transform. */
+.stone{position:absolute;left:-24px;right:-24px;bottom:-24px;height:45%;background-image:var(--plate);background-size:auto 440%;background-position:center bottom;mask-image:linear-gradient(transparent,#000 15%);transform:var(--ledge-transform,none);transform-origin:0 0}
+.canopy{position:absolute;left:-7%;top:-10%;width:35%;height:43%;background:var(--canopy) left top/contain no-repeat;opacity:.55;transform:var(--leaves-transform,none);transform-origin:0 0;animation:canopy 14s ease-in-out infinite alternate}
+.grade{position:absolute;inset:0;background:linear-gradient(180deg,#f2efdd83,transparent 28%,transparent 52%,#f4eedc19 70%,#f1ece0d9 100%),linear-gradient(105deg,#fff3d13b,transparent 60%)}
+.dapple{position:absolute;inset:-20%;background:radial-gradient(ellipse at 20% 15%,#fffce54d,transparent 37%),repeating-conic-gradient(from 38deg at -10% -15%,transparent 0deg 9deg,#fff4cc13 10deg 14deg,transparent 15deg 30deg);mix-blend-mode:soft-light;animation:dapple 19s ease-in-out infinite alternate}
+.butterflies{position:absolute;inset:0;overflow:hidden}
+.butterfly{position:absolute;left:0;top:0;width:24px;opacity:.7;animation:flight 31s linear infinite;animation-delay:calc(var(--i)*-16s)}
+.butterfly img{width:100%;animation:wings .28s ease-in-out infinite alternate}
+@keyframes canopy{from{rotate:-.8deg}to{rotate:1.2deg}}
+@keyframes dapple{from{transform:translate(-1%,0) rotate(-1deg);opacity:.5}to{transform:translate(2%,1%) rotate(2deg);opacity:.85}}
+@keyframes flight{0%{transform:translate(-8vw,35vh) rotate(-15deg)}30%{transform:translate(32vw,18vh) rotate(20deg)}65%{transform:translate(66vw,31vh) rotate(-12deg)}100%{transform:translate(110vw,12vh) rotate(20deg)}}
+@keyframes wings{from{transform:scaleX(.5)}to{transform:scaleX(1)}}
+.plate[data-reduced=true] *{animation:none!important;transform:none!important}
+.plate[data-reduced=true] .hero{display:none}
+.plate[data-reduced=true] .destination{opacity:1}
+@media(max-width:1000px){.far,.trees{background-position:42% center}.stone{height:59%;background-size:auto 400%;background-position:51% bottom}.canopy{width:63%;left:-21%;top:-4%;height:34%;opacity:.43}.grade{background:linear-gradient(180deg,#f2efdd4f,transparent 32%,transparent 52%,#f1ece04d 67%,#f1ece0eb 100%)}.butterfly{width:17px}}
+@media(prefers-reduced-motion:reduce){.plate *{animation:none!important}}

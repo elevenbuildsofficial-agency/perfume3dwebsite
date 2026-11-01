@@ -185,3 +185,5 @@
   .footer{left:var(--gutter);right:var(--gutter)}
 }
 @media(max-width:1000px){.header{padding-left:25px;padding-right:25px}}
+
+.wordmark{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important}

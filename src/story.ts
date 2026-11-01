@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { content, worlds } from './content';
-import { chapterStage, heroBeat, range } from './cinematic';
+import { chapterStage, heroBeat, range, staticChapter } from './cinematic';
 
 gsap.registerPlugin(ScrollTrigger);
 export type StoryState = { target: number; stage: number; mix: number; from: number; to: number; x: number; slosh: number; mobile: boolean; reduced: boolean; paused: boolean; pointerX: number; pointerY: number; scroll?: number };
@@ -48,7 +48,7 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
     measure();
     const updateScroll = () => {
       const scroll=scrollY/innerHeight;
-      state.current.target=state.current.reduced?Math.min(4,scroll):chapterStage(scroll,firstChapter,lastChapter);
+      state.current.target=state.current.reduced?staticChapter(scroll,lastChapter):chapterStage(scroll,firstChapter,lastChapter);
     };
     const trigger = ScrollTrigger.create({
       start: 0, end: () => Math.max(1, document.getElementById('chapter-4')?.offsetTop ?? innerHeight * 4),

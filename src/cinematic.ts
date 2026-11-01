@@ -21,6 +21,8 @@ export function chapterStage(scroll: number, first: number, last: number) {
   return 1 + 3 * clamp((scroll - first) / Math.max(.01, last - first));
 }
 
+export const staticChapter = (scroll: number, last = 4) => Math.round(clamp(scroll / Math.max(1, last / 4), 0, 4));
+
 export function groundFrame(width: number, height: number, pointerX: number, pointerY: number, stage: number, reduced: boolean) {
   return {
     x: reduced ? 0 : pointerX * Math.min(12, width * .012),

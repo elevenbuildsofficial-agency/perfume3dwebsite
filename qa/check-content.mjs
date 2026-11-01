@@ -30,7 +30,7 @@ const aboutHtml = await fs.readFile(new URL('../dist/about/index.html', import.m
 for (const required of [content.about.seoTitle, content.about.seoDescription]) {
   if (!aboutHtml.includes(required)) { console.error(`Missing About metadata: ${required}`); failures++; }
 }
-for (const asset of ['/videos/morrow-orchard-loop.mp4', '/videos/morrow-orchard-loop-mobile.mp4', '/images/morrow-loop-poster.webp', '/images/morrow-loop-poster-small.webp']) {
+for (const asset of ['/videos/morrow-orchard-loop.mp4', '/videos/morrow-orchard-loop-mobile.mp4', '/images/morrow-loop-poster.webp', '/images/morrow-loop-poster-small.webp', ...['citrus-peel','rose-petal','tea-leaf','fig-leaf'].map(id=>`/ingredients/${id}.webp`)]) {
   try { await fs.access(new URL(`../dist${asset}`, import.meta.url)); }
   catch { console.error(`Missing built background asset: ${asset}`); failures++; }
 }

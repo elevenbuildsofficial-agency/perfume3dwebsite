@@ -23,6 +23,20 @@ export function chapterStage(scroll: number, first: number, last: number) {
 
 export const staticChapter = (scroll: number, last = 4) => Math.round(clamp(scroll / Math.max(1, last / 4), 0, 4));
 
+// Ingredient story occupies its own measured scroll interval. Scent anchors keep
+// their original pacing; the final collection returns only after this interval.
+export function ingredientBeat(scroll:number,start:number,end:number,reduced=false) {
+  const progress=clamp((scroll-start)/Math.max(.1,end-start-1));
+  const visibility=reduced?Number(scroll>=start&&scroll<end-.35)
+    :range(scroll,start-.50,start+.06)*(1-range(scroll,end-.65,end-.10));
+  return {progress,visibility,cursor:progress*3};
+}
+
+export function ingredientWeight(cursor:number,index:number,reduced=false) {
+  if(reduced)return Math.round(cursor)===index?1:0;
+  return 1-range(Math.abs(cursor-index),.24,.76);
+}
+
 export function groundFrame(width: number, height: number, pointerX: number, pointerY: number, stage: number, reduced: boolean) {
   return {
     x: reduced ? 0 : pointerX * Math.min(12, width * .012),

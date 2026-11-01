@@ -36,14 +36,14 @@
 .description{font-size:clamp(15px,1.35vw,20px);line-height:1.55;letter-spacing:-.015em;max-width:360px;margin:0}
 .openingNote{position:absolute;left:7%;right:7%;bottom:17%;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;font-size:11px}
 .openingNote>span{max-width:230px;line-height:1.6}.openingNote button{display:flex;align-items:center;gap:22px;border:0;border-bottom:1px solid #29372d65;background:none;padding:12px 0;font-size:12px}.openingNote svg{width:22px;height:22px;transform:rotate(90deg)}
-.scene1 .copy{left:48%;top:26%;width:45%;max-width:650px}.scene1 .copy h2{font-size:clamp(66px,min(7.4vw,12svh),130px)}
+.scene1 .copy{left:48%;top:26%;width:45%;max-width:650px}.scene1 .copy h2{font-size:clamp(66px,min(7.4vw,12svh),110px)}
 .scene1 .description{max-width:375px}
 .poem{position:absolute;left:49%;top:66%;display:flex;flex-direction:column;gap:5px;font-size:clamp(18px,2.1vw,34px);font-weight:300;letter-spacing:-.035em;line-height:1.2}
 .poem>span{opacity:clamp(.75,calc((var(--scene) - .65)*3 - var(--line)*.18),1)}
 .scene2 .copy{left:7%;top:43%;width:49%}.scene2 .copy h2{font-size:clamp(65px,min(7.3vw,12svh),125px)}
 .scene2 .description{max-width:390px}
 .fieldnote{position:absolute;right:5.6%;top:34%;width:13%;font-size:10px}.fieldnote>span{display:block;text-transform:uppercase;letter-spacing:.09em}.fieldnote i{display:block;width:100%;height:1px;background:currentColor;opacity:.45;margin:15px 0}.fieldnote p{font-size:11px;line-height:1.6;max-width:240px;margin:0}
-.scene3{color:#f4eddd}.scene3 .copy{top:31%;width:42%}.scene3 .copy h2{font-size:clamp(62px,min(6.9vw,12svh),122px)}.scene3 .description{max-width:340px;color:#f4edddda}
+.scene3{color:#f4eddd}.scene3 .copy{top:31%;width:42%}.scene3 .copy h2{font-size:clamp(62px,min(6.9vw,12svh),108px)}.scene3 .description{max-width:340px;color:#f4edddda}
 .materialNote{position:absolute;left:7%;bottom:17%;width:30%;font-size:10px;line-height:1.6;border-top:1px solid #f4eddd65;padding-top:13px}.materialNote>span{letter-spacing:.08em;text-transform:uppercase}.materialNote p{margin:9px 0 0;max-width:320px;font-size:12px}
 .scene4 .copy{top:18%;left:7%;width:46%;max-width:680px}.scene4 .copy h2{font-size:clamp(54px,min(6.2vw,9svh),104px)}.scene4 .description{margin-top:33svh;max-width:380px}
 .explore{position:absolute;left:calc(100vw - 7vw - 7vw - 270px);top:54svh;display:flex;align-items:center;gap:40px;padding:18px 24px;min-width:250px;border:1px solid #29372d;background:#29372d;color:#f0ede3;border-radius:40px;font-size:13px;white-space:nowrap}.explore:hover{background:#405244}.explore svg{width:22px;height:22px}

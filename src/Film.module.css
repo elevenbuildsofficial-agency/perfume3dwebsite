@@ -31,3 +31,4 @@
 .app :global(dialog) p{font-size:16px}.app :global(dialog) label{font-size:14px}.app :global(dialog) small{font-size:12px}.finalCopy>p:first-of-type{font-size:16px}@media(max-width:767px){.finalCopy p,.heroCopy>div:last-child p:first-child{font-size:16px}.finalCopy .note,.heroCopy .note{font-size:12px}}
 @media(max-width:767px){.app:not([data-active="0"]) .chapters{top:auto;bottom:0;left:16px;right:16px;justify-content:center;min-height:38px}.app:not([data-active="0"]) .chapterCopy{bottom:58px}.app[data-active="4"] .finalCopy{bottom:58px;max-height:49svh}}
 .heroCopy,.chapterCopy,.finalCopy{color:var(--film-ink,#292b22)}
+@media(min-width:768px){.chapters{top:92px;padding:3px}.chapters button{min-height:30px;padding:6px 10px}}

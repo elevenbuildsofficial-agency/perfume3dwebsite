@@ -120,6 +120,9 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       if(s.reduced&&!dirty&&s.stage===lastStage){frame=requestAnimationFrame(draw);return;}
       dirty=false;lastStage=s.stage;
       px=lerp(px,tx,1-Math.exp(-5*dt));py=lerp(py,ty,1-Math.exp(-5*dt));s.pointerX=s.reduced?0:px;s.pointerY=s.reduced?0:py;
+      const portalBottle=pose(3,2);
+      s.ingredientOriginX=portalBottle.x;
+      s.ingredientOriginY=portalBottle.y+(bottleRegistration[2].nozzle[1]-.5)*portalBottle.height;
       // The ingredient chapter completely covers the products. Keep pointer
       // smoothing alive, but avoid repainting hidden full-resolution canvases.
       if((s.ingredientVisibility??0)>.999){frame=requestAnimationFrame(draw);return;}

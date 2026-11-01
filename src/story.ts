@@ -3,10 +3,10 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { content, worlds } from './content';
-import { chapterStage, heroBeat, range, staticChapter, ingredientBeat } from './cinematic';
+import { heroBeat, range, ingredientBeat, ingredientLens, ingredientBottleStage } from './cinematic';
 
 gsap.registerPlugin(ScrollTrigger);
-export type StoryState = { target: number; stage: number; mix: number; from: number; to: number; x: number; slosh: number; mobile: boolean; reduced: boolean; paused: boolean; pointerX: number; pointerY: number; scroll?: number; ingredientProgress?: number; ingredientVisibility?: number };
+export type StoryState = { target: number; stage: number; mix: number; from: number; to: number; x: number; slosh: number; mobile: boolean; reduced: boolean; paused: boolean; pointerX: number; pointerY: number; scroll?: number; ingredientProgress?: number; ingredientVisibility?: number; ingredientEntry?:number; ingredientExit?:number; ingredientOriginX?:number; ingredientOriginY?:number };
 const rgb = (hex: string) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
 const palettes = worlds.map(world => ({ bg: rgb(world.bg), ink: rgb(world.ink), a: rgb(world.a), b: rgb(world.b) }));
 const lightInk = rgb('#FFFFFF');
@@ -58,7 +58,7 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
     measure();
     const updateScroll = () => {
       const scroll=scrollY/innerHeight;
-      state.current.target=state.current.reduced?staticChapter(scroll,ingredientStart):chapterStage(scroll,firstChapter,ingredientStart);
+      state.current.target=ingredientBottleStage(scroll,firstChapter,ingredientStart,lastChapter,state.current.reduced);
     };
     const trigger = ScrollTrigger.create({
       start: 0, end: () => Math.max(1, document.getElementById('chapter-4')?.offsetTop ?? innerHeight * 4),
@@ -80,6 +80,7 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       s.scroll=(s.scroll??desiredScroll)+(desiredScroll-(s.scroll??desiredScroll))*(s.reduced?1:1-Math.exp(-18*dt));
       const ingredients=ingredientBeat(s.scroll,ingredientStart,lastChapter,s.reduced);
       s.ingredientProgress=ingredients.progress;s.ingredientVisibility=ingredients.visibility;
+      s.ingredientEntry=ingredients.entry;s.ingredientExit=ingredients.exit;
       s.stage += (s.target - s.stage) * (s.reduced ? 1 : 1 - Math.exp(-content.scene.scrollSmoothing * dt));
       if (Math.abs(s.target - s.stage) < 0.00001) s.stage = s.target;
       s.stage = Math.max(0, Math.min(4, s.stage));
@@ -109,7 +110,8 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       const ink = `rgb(${ir} ${ig} ${ib})`;
       if (ink !== lastInk) { root.style.setProperty('--ink', ink); lastInk = ink; }
       root.style.setProperty('--progress', String(Math.min(1,s.scroll/lastChapter)));
-      root.style.setProperty('--bottle-visibility',String(1-ingredients.visibility));
+      root.style.setProperty('--bottle-visibility',ingredients.visibility>=.99999?'0':'1');
+      root.style.setProperty('--ingredient-camera',ingredientLens(innerWidth,innerHeight,ingredients.camera,s.ingredientOriginX,s.ingredientOriginY).transform);
       root.style.setProperty('--product-x', `${s.mobile ? 0 : s.x * 11}vw`);
       const nearest = Math.round(s.stage);
       const navigationStep=s.scroll>=lastChapter-.65?5:ingredients.visibility>.15||s.scroll>=ingredientStart?4:Math.min(3,nearest);
@@ -120,8 +122,8 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
         let opacity = 1 - smooth(Math.max(0, Math.min(1, (distance - 0.12) / 0.58)));
         if (!s.reduced && (s.scroll??0)<.30) opacity=index===0?beat.text:index===1?range(s.scroll??0,.28,.30):0;
         if (!s.reduced && index>1 && index<4) opacity*=range(s.stage,index-.36,index-.08);
-        if(index>=3)opacity*=1-ingredients.visibility;
-        if(index===4)opacity*=s.reduced?Number((s.scroll??0)>=lastChapter-.35):range(s.scroll??0,lastChapter-.65,lastChapter-.10);
+        if(index===3)opacity*=1-range(ingredients.entry,.04,.28);
+        if(index===4)opacity*=s.reduced?ingredients.exit:range(ingredients.exit,.68,1);
         panel.style.opacity = String(opacity);
         panel.style.visibility = opacity < 0.001 ? 'hidden' : 'visible';
         panel.style.transform = `translate3d(0,${index===0&&!s.reduced?-(1-beat.text)*75:(index-s.stage)*28}px,0)`;
@@ -140,7 +142,7 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       motion.removeEventListener('change', initializeMotion); mobile.removeEventListener('change', resize);
       removeEventListener('resize',resize);
       removeEventListener('ingredientnavigate',ingredientNavigate);
-      ['--bg', '--ink', '--progress', '--product-x', '--liquid-a', '--liquid-b','--bottle-visibility'].forEach(key => root.style.removeProperty(key));
+      ['--bg', '--ink', '--progress', '--product-x', '--liquid-a', '--liquid-b','--bottle-visibility','--ingredient-camera'].forEach(key => root.style.removeProperty(key));
     };
   }, [panels, wordmark]);
 

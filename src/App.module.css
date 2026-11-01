@@ -22,7 +22,7 @@
 .headerCta:hover{background:var(--ink);color:var(--bg)}
 .smallDot{display:inline-block;width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:currentColor}
 .wordmark{position:fixed;z-index:1;top:25.5svh;left:0;width:100%;text-align:center;font-size:26.4vw;line-height:.9;letter-spacing:-.078em;font-weight:550;color:#173426;text-shadow:0 1px 0 #fff3,0 0 22px #f6efdc45;padding-right:.065em;pointer-events:none;will-change:opacity}
-.scene{position:fixed;z-index:2;inset:0;pointer-events:none;opacity:var(--bottle-visibility,1)}
+.scene{position:fixed;z-index:2;inset:0;pointer-events:none;opacity:var(--bottle-visibility,1);transform:var(--ingredient-camera,none);transform-origin:0 0}
 .section{height:100svh;min-height:620px}
 .panel{position:fixed;inset:0;z-index:3;will-change:transform,opacity;pointer-events:none}
 .panel button,.panel a{pointer-events:auto}

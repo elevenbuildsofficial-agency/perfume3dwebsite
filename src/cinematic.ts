@@ -27,14 +27,48 @@ export const staticChapter = (scroll: number, last = 4) => Math.round(clamp(scro
 // their original pacing; the final collection returns only after this interval.
 export function ingredientBeat(scroll:number,start:number,end:number,reduced=false) {
   const progress=clamp((scroll-start)/Math.max(.1,end-start-1));
-  const visibility=reduced?Number(scroll>=start&&scroll<end-.35)
-    :range(scroll,start-.50,start+.06)*(1-range(scroll,end-.65,end-.10));
-  return {progress,visibility,cursor:progress*3};
+  const entry=reduced?Number(scroll>=start):range(scroll,start-.70,start-.02);
+  const exit=reduced?Number(scroll>=end-.35):range(scroll,end-.65,end-.10);
+  const visibility=entry*(1-exit);
+  const camera=reduced?0:entry*(1-range(scroll,end-1.25,end-.85));
+  return {progress,visibility,cursor:progress*3,entry,exit,camera};
 }
 
-export function ingredientWeight(cursor:number,index:number,reduced=false) {
-  if(reduced)return Math.round(cursor)===index?1:0;
-  return 1-range(Math.abs(cursor-index),.24,.76);
+// Opaque scenes replace one another through a growing lens aperture. Opacity
+// never mixes two botanical photographs or exposes the bottles through them.
+export function ingredientShot(cursor:number,index:number,reduced=false) {
+  if(reduced)return {visible:Math.round(cursor)===index,reveal:Math.round(cursor)===index?1:0,scale:1,x:0,y:0,pitch:0,yaw:0,roll:0,copy:1,copyY:0,focus:0};
+  const reveal=index===0?1:range(cursor,index-.58,index-.04);
+  const next=index===3?0:range(cursor,index+.42,index+.96);
+  const approach=index===0?0:1-range(cursor,index-.58,index);
+  const departure=index===3?0:range(cursor,index+.18,index+.80);
+  const copyIn=index===0?1:range(cursor,index-.19,index-.02);
+  const copyOut=index===3?0:range(cursor,index+.16,index+.43);
+  return {
+    visible:reveal>0&&next<1,reveal,
+    scale:1+approach*1.35+departure*2.9,
+    x:approach*.16-departure*.13,y:approach*.10-departure*.12,
+    pitch:approach*12-departure*9,yaw:approach*-24+departure*19,
+    roll:approach*11-departure*17,
+    copy:copyIn*(1-copyOut),copyY:(1-copyIn)*34-copyOut*30,
+    focus:departure**3*2.4,
+  };
+}
+
+export function ingredientAperture(width:number,height:number,openness:number,x:number,y:number) {
+  const radius=Math.max(Math.hypot(x,y),Math.hypot(width-x,y),Math.hypot(x,height-y),Math.hypot(width-x,height-y))+4;
+  return {x,y,radius:radius*clamp(openness)};
+}
+
+export function ingredientLens(width:number,height:number,amount:number,originX?:number,originY?:number) {
+  const x=originX??width*(width<=1000?.48:.76),y=originY??height*(width<=1000?.235:.20);
+  const dx=(width*.5-x)*amount,dy=(height*.42-y)*amount,scale=1+amount*1.65;
+  return {x:x+dx,y:y+dy,scale,transform:amount<.00001?'none':`translate(${x+dx}px,${y+dy}px) scale(${scale}) translate(${-x}px,${-y}px)`};
+}
+
+export function ingredientBottleStage(scroll:number,first:number,start:number,end:number,reduced=false) {
+  const scent=Math.min(3,reduced?staticChapter(scroll,start):chapterStage(scroll,first,start));
+  return lerp(scent,4,range(scroll,end-1.3,end-.95));
 }
 
 export function groundFrame(width: number, height: number, pointerX: number, pointerY: number, stage: number, reduced: boolean) {

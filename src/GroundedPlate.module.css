@@ -1,4 +1,4 @@
-.plate{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#d6cbb3}
+.plate{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#d6cbb3;transform:var(--ingredient-camera,none);transform-origin:0 0}
 .world{position:absolute;inset:0;transform-origin:0 0}
 .hero{opacity:var(--hero-opacity,1);transform:var(--hero-transform,none)}
 .destination{opacity:var(--world-opacity,0)}

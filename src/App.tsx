@@ -110,7 +110,7 @@ export default function App({ heroModelUrl, cartCount = 0, cartOpen = false, onO
   const openReservation = (index = Math.max(0, Math.min(2, active - 1))) => { setSelectedProduct(index); setReserveOpen(true); };
   const register = (index: number) => (element: HTMLElement | null) => { panels.current[index] = element; };
   return <div className={styles.app} data-reduced-motion={reduced} style={{ '--font': `"${content.font.family}", ${content.font.fallback}` } as CSSProperties}>
-    <AmbientBackground story={state} reduced={reduced} />
+    <AmbientBackground story={state} reduced={reduced} grounded />
     <a className={styles.skip} href="#chapter-0" onClick={() => goTo(0)}>{content.ui.skip}</a>
     <Header active={active} count={cartCount} onNavigate={(path, section) => { if (path === '/') goTo(section ?? 0); else onNavigate(path); }} onCart={onOpenCart} onReserve={() => openReservation()} />
 

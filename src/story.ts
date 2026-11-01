@@ -3,9 +3,10 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { content, worlds } from './content';
+import { chapterStage, heroBeat, range } from './cinematic';
 
 gsap.registerPlugin(ScrollTrigger);
-export type StoryState = { target: number; stage: number; mix: number; from: number; to: number; x: number; slosh: number; mobile: boolean; reduced: boolean; paused: boolean; pointerX: number; pointerY: number };
+export type StoryState = { target: number; stage: number; mix: number; from: number; to: number; x: number; slosh: number; mobile: boolean; reduced: boolean; paused: boolean; pointerX: number; pointerY: number; scroll?: number };
 const rgb = (hex: string) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
 const palettes = worlds.map(world => ({ bg: rgb(world.bg), ink: rgb(world.ink), a: rgb(world.a), b: rgb(world.b) }));
 const lightInk = rgb('#FFFFFF');
@@ -30,8 +31,9 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
     let previous = 0;
     let currentActive = -1;
     let lastInk = '';
-    let lastStage = -1;
-    let lastMobile = false;
+    let lastStage=-1,lastScroll=-1,lastMobile=false;
+    let firstChapter=1,lastChapter=4;
+    const measure=()=>{firstChapter=(document.getElementById('chapter-1')?.offsetTop??innerHeight)/innerHeight;lastChapter=(document.getElementById('chapter-4')?.offsetTop??innerHeight*4)/innerHeight;};
     const initializeMotion = () => {
       const reduceMotion = motion.matches || new URLSearchParams(location.search).get('motion') === 'reduce';
       state.current.reduced = reduceMotion;
@@ -40,21 +42,31 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       lenis.current = reduceMotion ? null : new Lenis({ duration: 1.05, smoothWheel: true, touchMultiplier: 1, anchors: false });
       lenis.current?.on('scroll', ScrollTrigger.update);
     };
-    const resize = () => { state.current.mobile = mobile.matches; ScrollTrigger.refresh(); };
+    const resize = () => { state.current.mobile = mobile.matches; measure(); ScrollTrigger.refresh(); };
     initializeMotion();
     state.current.mobile = mobile.matches;
+    measure();
+    const updateScroll = () => {
+      const scroll=scrollY/innerHeight;
+      state.current.target=state.current.reduced?Math.min(4,scroll):chapterStage(scroll,firstChapter,lastChapter);
+    };
     const trigger = ScrollTrigger.create({
       start: 0, end: () => Math.max(1, document.getElementById('chapter-4')?.offsetTop ?? innerHeight * 4),
-      onUpdate: self => { state.current.target = self.progress * 4; },
+      onUpdate: updateScroll,
     });
-    state.current.target = trigger.progress * 4;
+    updateScroll();
     motion.addEventListener('change', initializeMotion);
     mobile.addEventListener('change', resize);
+    addEventListener('resize',resize);
     const animate = (time: number) => {
       const dt = Math.min((time - previous) / 1000 || 0.016, 0.05);
       previous = time;
       lenis.current?.raf(time);
       const s = state.current;
+      if (s.paused || document.hidden) { frame=requestAnimationFrame(animate); return; }
+      updateScroll();
+      const desiredScroll=scrollY/innerHeight;
+      s.scroll=(s.scroll??desiredScroll)+(desiredScroll-(s.scroll??desiredScroll))*(s.reduced?1:1-Math.exp(-18*dt));
       s.stage += (s.target - s.stage) * (s.reduced ? 1 : 1 - Math.exp(-content.scene.scrollSmoothing * dt));
       if (Math.abs(s.target - s.stage) < 0.00001) s.stage = s.target;
       s.stage = Math.max(0, Math.min(4, s.stage));
@@ -63,8 +75,9 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       s.mix = smooth(s.stage - s.from);
       s.x = content.scene.positions[s.from] + (content.scene.positions[s.to] - content.scene.positions[s.from]) * s.mix;
       s.slosh = s.reduced ? 0 : Math.max(-0.14, Math.min(0.14, (s.target - s.stage) * 9));
-      if (s.stage === lastStage && s.mobile === lastMobile) { frame = requestAnimationFrame(animate); return; }
-      lastStage = s.stage; lastMobile = s.mobile;
+      const beat=heroBeat(s.scroll,s.reduced);
+      if(s.stage===lastStage&&s.mobile===lastMobile&&Math.abs(s.scroll-lastScroll)<.00001){frame=requestAnimationFrame(animate);return;}
+      lastStage=s.stage;lastScroll=s.scroll;lastMobile=s.mobile;
       const a = palettes[s.from]; const b = palettes[s.to]; const t = s.mix;
       const r = Math.round(a.bg[0] + (b.bg[0] - a.bg[0]) * t);
       const g = Math.round(a.bg[1] + (b.bg[1] - a.bg[1]) * t);
@@ -89,20 +102,26 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       panels.current.forEach((panel, index) => {
         if (!panel) return;
         const distance = Math.abs(s.stage - index);
-        const opacity = 1 - smooth(Math.max(0, Math.min(1, (distance - 0.12) / 0.58)));
+        let opacity = 1 - smooth(Math.max(0, Math.min(1, (distance - 0.12) / 0.58)));
+        if (!s.reduced && (s.scroll??0)<.30) opacity=index===0?beat.text:index===1?range(s.scroll??0,.28,.30):0;
+        if (!s.reduced && index>1 && index<4) opacity*=range(s.stage,index-.36,index-.08);
         panel.style.opacity = String(opacity);
         panel.style.visibility = opacity < 0.001 ? 'hidden' : 'visible';
-        panel.style.transform = `translate3d(0,${(index - s.stage) * 28}px,0)`;
+        panel.style.transform = `translate3d(0,${index===0&&!s.reduced?-(1-beat.text)*75:(index-s.stage)*28}px,0)`;
         panel.inert = index !== nearest;
         panel.setAttribute('aria-hidden', String(index !== nearest));
       });
-      if (wordmark.current) wordmark.current.style.opacity = String(Math.max(0, 1 - s.stage * 1.7));
+      if (wordmark.current) {
+        wordmark.current.style.opacity = String(s.reduced?Math.max(0,1-s.stage*1.7):beat.text);
+        wordmark.current.style.transform=`translate3d(0,${s.reduced?0:-(1-beat.text)*120}px,0)`;
+      }
       frame = requestAnimationFrame(animate);
     };
     frame = requestAnimationFrame(animate);
     return () => {
       cancelAnimationFrame(frame); trigger.kill(); lenis.current?.destroy();
       motion.removeEventListener('change', initializeMotion); mobile.removeEventListener('change', resize);
+      removeEventListener('resize',resize);
       ['--bg', '--ink', '--progress', '--product-x', '--liquid-a', '--liquid-b'].forEach(key => root.style.removeProperty(key));
     };
   }, [panels, wordmark]);

@@ -27,12 +27,12 @@ export function collectionLayout(width:number,height:number,scene:CollectionScen
   const desired=config.height.map(value=>value*height*compact);
   const bounds=config.tilt.map((angle,index)=>silhouetteBounds(index,angle));
   const gutter=clamp(width*.056,40,108),panel=clamp(width*.183,225,330);
-  const maxWidth=mobile?width*.90:scene==='about'?width*.70:Math.min(width*.62,width-2*(gutter+panel+20));
+  const maxWidth=mobile?width*(scene==='about'?.90:.82):scene==='about'?width*.70:Math.min(width*.62,width-2*(gutter+panel+20));
   const gap=mobile?clamp(width*.035,10,20):clamp(width*.022,20,42);
   const total=desired.reduce((sum,h,index)=>sum+(bounds[index].right-bounds[index].left)*h,0);
   const scale=Math.min(1,Math.max(1,maxWidth-2*gap)/total);
   const span=total*scale+2*gap;
-  let cursor=(width-span)/2;
+  let cursor=width/2-span/2;
   const poses:CollectionPose[]=new Array(3);
   for(const index of collectionOrder){
     const h=desired[index]*scale,bound=bounds[index];

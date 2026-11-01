@@ -167,7 +167,7 @@
   .app{--gutter:clamp(40px,5.6vw,108px)}
   .header{padding-left:var(--gutter);padding-right:var(--gutter)}
   .wordmark{font-size:min(26.4vw,40svh);top:20svh;letter-spacing:-.075em}
-  .heroLeft{left:var(--gutter);bottom:13%;width:36%}
+  .heroLeft{left:var(--gutter);bottom:9%;width:36%}
   .heroLeft h2{font-size:clamp(42px,min(4.7vw,7.8svh),84px)}
   .heroLeft p{margin-top:18px}
   .heroRight{right:var(--gutter);bottom:13%}

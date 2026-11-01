@@ -1,5 +1,46 @@
 # Verification — 1 November 2026 (Asia/Karachi)
 
+## Grounded bottles and cap-lift revision
+
+The current home story uses the clean orchard photograph directly. Its hills,
+olive trees, stone foreground and canopy are separate depth layers. The stone,
+product bases and multiply-blended shadows share the same pointer transform.
+Bottle breathing scales about the contact point. The About story, copy, chapter
+names, prices and bag flow are retained.
+
+- TypeScript/Vite production build passed; content/SEO/media checks passed.
+- 120 raster layout cases passed, including 390px, iPhone, Duo, tablet,
+  landscape and desktop: centred groups, equal visible gaps, common baselines
+  and no clipped bottles.
+- `npm run check:cinematic` verifies the 3/12/16/30% beat boundaries, hero text
+  clearance, unchanged scent anchors, reverse traversal and reduced motion.
+- Browser checked at 1440×900 and 390×844. The three-bottle group fits with clear
+  outer margins; the hero title sits below the bottles. The centre cap rises
+  above its nozzle; side bottles soften as focus moves to First Light. The neck
+  close-up dissolves into its chapter by 30% of one viewport of scroll.
+- A development-only fixture (`qa/cinematic.html`, excluded from the build)
+  exercised exact 12%, 30%, Velvet Hour, Wild Ground, final-group and reverse
+  positions. The actual canvas reported lift 1 at approximately .12 viewport,
+  dissolve 1 at .30, and lift 0 again after returning to zero.
+- Mobile First Light, Velvet Hour, Wild Ground and the final three-bottle scene
+  were visually inspected. Copy, prices, ingredient lists and controls remain
+  separated from the products. No horizontal overflow was observed.
+- The explicit reduced-motion branch was visually checked: all three bottles
+  are cap-off, with no visible cap movement, particles or vapour; computed
+  ambient animation names were all `none`. The OS preference was not changed.
+- Direct About navigation still loads its existing five named movements.
+- Desktop/mobile proof images are saved locally as
+  `qa/grounded-hero-desktop.png` and `qa/grounded-hero-mobile.png` (ignored).
+- No named GLBs or registered cap-layer PNG sets are supplied. The live path
+  therefore uses the original photos, a separated photographed cap and an
+  approximate atomiser. Real hidden geometry and a new viewing angle cannot
+  be recovered from these images. Exact missing files and the one-line source
+  selector are in `ASSETS_NEEDED.md`. GLB/PNG adapters compile, but could not be
+  visually verified against replacement assets that do not exist.
+
+The earlier lab measurements below describe the preceding video-background
+build; they have not been rerun for this revision.
+
 The verified version is the three-product photographic collection, locally rendered orchard video loop, persistent bag and cinematic About page. The earlier single shader bottle is not the default presentation.
 
 ## Build and data

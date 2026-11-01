@@ -1,4 +1,4 @@
-> Current revision: restored the smooth continuous bottle animation from 86ee453 at the user's request. The hero wordmark has no background, border, shadow or backdrop filter. The still-film experiment and video handoff below are retained as historical/reference material, not the active home renderer.
+> Active garden/bottle revision: continuous cap/bottle renderer with bottle-free generated garden plates, new registered photographic product layers, machined atomisers and silhouette-projected multiply shadows. Browser-checked at 390×844 and 1440×900, including forward and reverse cap travel. Active home images pass 120 raster spacing/base/clipping checks. Build, cinematic and content checks pass. WebP companions reduce the nine delivered product layers to roughly 1.5 MB with full-resolution alpha; lossless PNG masters remain available. No measured device frame-rate or live ray-traced refraction claim. The still-film audit below is historical.
 
 # Morrow film audit
 

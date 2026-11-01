@@ -10,11 +10,15 @@ const layoutCode=(await compile('collectionLayout')).replace("'./content'",JSON.
 const {collectionLayout}=await import(moduleUrl(layoutCode));
 const large=await Promise.all(['01','02','03'].map(async n=>loadImage(await fs.readFile(new URL(`../public/images/morrow-${n}.webp`,import.meta.url)))));
 const small=await Promise.all(['01','02','03'].map(async n=>loadImage(await fs.readFile(new URL(`../public/images/morrow-${n}-small.webp`,import.meta.url)))));
+const layered=await Promise.all(['first-light','velvet-hour','wild-ground'].map(async (id,i)=>{
+  try{return await loadImage(await fs.readFile(new URL(`../public/bottles/${id}-capon.webp`,import.meta.url)));}
+  catch{return large[i];}
+}));
 const viewports=[[320,568],[360,650],[375,667],[390,844],[393,852],[430,932],[667,375],[844,390],[932,430],[540,720],[720,540],[768,1024],[1000,800],[1005,800],[1024,768],[1114,720],[1366,768],[1440,900],[1920,720],[1920,1080]];
 let checks=0;
 for(const [viewportWidth,height] of viewports)for(const gutter of [0,10])for(const scene of ['hero','final','about']){
   // Include the scrollbar gutter independently of the CSS media-query width.
-  const width=viewportWidth-gutter,mobile=viewportWidth<=1000,images=mobile?small:large;
+  const width=viewportWidth-gutter,mobile=viewportWidth<=1000,images=scene==='about'?(mobile?small:large):layered;
   const poses=collectionLayout(width,height,scene,mobile),bounds=[];
   for(let index=0;index<3;index++){
     const canvas=createCanvas(width,height),ctx=canvas.getContext('2d'),pose=poses[index],image=images[index];

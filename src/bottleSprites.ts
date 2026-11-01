@@ -1,7 +1,7 @@
 import { content } from './content';
 import { BOTTLE_SOURCE, bottleAssets, bottleRegistration } from './bottleAssets';
 
-export type BottleSprites = { closed: CanvasImageSource; body: CanvasImageSource; cap: CanvasImageSource; shadow?: CanvasImageSource; width: number; height: number; approximate: boolean };
+export type BottleSprites = { closed: CanvasImageSource; body: CanvasImageSource; cap: CanvasImageSource; cast?: CanvasImageSource; bodyCast?: CanvasImageSource; capCast?: CanvasImageSource; shadow?: CanvasImageSource; width: number; height: number; approximate: boolean };
 const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
   const image=new Image(); image.decoding='async'; image.onload=()=>resolve(image); image.onerror=()=>reject(new Error(`Cannot load ${src}`)); image.src=src;
 });
@@ -26,7 +26,22 @@ function grade(image: CanvasImageSource, width: number, height: number, part: 'b
   return canvas;
 }
 
+function withCastShadows(sprite: BottleSprites): BottleSprites {
+  const silhouette=(source:CanvasImageSource)=>{
+    const {canvas,ctx}=surface(sprite.width,sprite.height);
+    ctx.drawImage(source,0,0,sprite.width,sprite.height);
+    ctx.globalCompositeOperation='source-in';
+    ctx.fillStyle='rgba(81,75,49,.32)';ctx.fillRect(0,0,sprite.width,sprite.height);
+    return canvas;
+  };
+  return {...sprite,cast:silhouette(sprite.closed),bodyCast:silhouette(sprite.body),capCast:silhouette(sprite.cap)};
+}
+
 export async function loadBottleSprites(index: number): Promise<BottleSprites> {
+  return withCastShadows(await loadSprites(index));
+}
+
+async function loadSprites(index: number): Promise<BottleSprites> {
   const asset=bottleAssets[index],r=bottleRegistration[index];
   if(BOTTLE_SOURCE==='auto'&&asset.mode==='glb'&&asset.model) {
     try { const {renderModelSprites}=await import('./modelSprites');return await renderModelSprites(asset.model,index); }

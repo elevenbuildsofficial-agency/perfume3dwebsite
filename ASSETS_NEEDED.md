@@ -1,4 +1,6 @@
-> Current revision: restored the smooth continuous bottle animation from 86ee453 at the user's request. The hero wordmark has no background, border, shadow or backdrop filter. The still-film experiment and video handoff below are retained as historical/reference material, not the active home renderer.
+> Active revision: smooth continuous bottle/cap animation with clean generated garden plates and complete registered photographic layers for all three products. No asset is missing for this active PNG implementation. Each `/public/bottles/{first-light,velvet-hour,wild-ground}-{capon,capoff,cap}.png` exists, including a detailed exposed brass atomiser. Sources are in `assets/source`; reproduce with `node scripts/prepare-bottle-layers.mjs`. `BOTTLE_SOURCE` in `src/bottleAssets.ts` remains a one-line fallback switch.
+>
+> Optional live-3D upgrades are absent: `/public/models/first-light.glb`, `/public/models/velvet-hour.glb`, `/public/models/wild-ground.glb` (nodes `body`, `cap`, optionally `nozzle`). The active implementation uses photographed/generated reflections; it does not simulate dynamic glass refraction. The video handoff below is historical and is not required by the active renderer.
 
 # Missing motion assets
 

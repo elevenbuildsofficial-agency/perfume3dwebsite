@@ -1,3 +1,5 @@
+> Latest direction: keep the restored smooth continuous cap/bottle choreography and transparent wordmark, using clean landscape/portrait plates edited from the realistic generated Mediterranean scene. Baked-in bottles, their shadows and caustics are removed from the plate to avoid duplication. About remains separate.
+
 > Current revision: restored the smooth continuous bottle animation from 86ee453 at the user's request. The hero wordmark has no background, border, shadow or backdrop filter. The still-film experiment and video handoff below are retained as historical/reference material, not the active home renderer.
 
 # Morrow photographed-film rebuild

@@ -46,20 +46,31 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       return {x:index===stage-1?config.x[index]*width:(index<stage-1?-.35:1.35)*width,y:groundFrame(width,height,0,0,stage,s.reduced).baseline-bottom*h,height:h,angle:0,alpha:index===stage-1?1:0};
     };
     const mixPose=(a:Pose,b:Pose,t:number):Pose=>({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t),height:lerp(a.height,b.height,t),angle:lerp(a.angle,b.angle,t),alpha:lerp(a.alpha,b.alpha,t)});
-    const groundShadow=(p:Pose,index:number,lift:number)=>{
+    const groundShadow=(p:Pose,index:number,lift:number,exit:number)=>{
       const base=p.y+silhouetteBounds(index,p.angle).bottom*p.height,foot=p.height*productGeometry[index].aspect*bottleRegistration[index].baseWidth;
       shadow.save();shadow.globalAlpha=p.alpha;
       const modelShadow=sprites[index]?.shadow;
       if(modelShadow){shadow.save();shadow.translate(p.x,p.y);shadow.rotate(p.angle);shadow.drawImage(modelShadow,-p.height*productGeometry[index].aspect/2,-p.height/2,p.height*productGeometry[index].aspect,p.height);shadow.restore();}
-      // Sun enters from upper left. Every flacon shares one olive/stone shadow grade.
-      shadow.save();shadow.translate(p.x+foot*.20,base+foot*.09);shadow.rotate(.24);shadow.scale(1,.24);
-      let gradient=shadow.createRadialGradient(0,0,0,0,0,foot*.83);
-      gradient.addColorStop(0,`rgba(76,73,48,${modelShadow?0:.28})`);gradient.addColorStop(.35,`rgba(94,86,58,${modelShadow?0:.20})`);gradient.addColorStop(1,'rgba(116,104,73,0)');
-      shadow.fillStyle=gradient;shadow.fillRect(-foot,-foot,foot*2,foot*2);shadow.restore();
+      // Project the actual silhouette onto sunlit limestone, opposite the upper-left sun.
+      // A separate multiply canvas colours the stone without painting an opaque black oval.
+      const sprite=sprites[index];
+      if(!modelShadow&&sprite){
+        const h=p.height,w=h*sprite.width/sprite.height,b=base-p.y,sunX=.58,sunY=.18;
+        const project=(source:CanvasImageSource,dx=0,dy=0,softness=1.8,alpha=1)=>{
+          shadow.save();shadow.globalAlpha*=alpha;shadow.filter=`blur(${softness}px)`;
+          shadow.translate(p.x+dx,p.y+dy);shadow.transform(1,0,-sunX,-sunY,b*sunX,b*(1+sunY));
+          shadow.rotate(p.angle);shadow.drawImage(source,-w/2,-h/2,w,h);shadow.restore();
+        };
+        const cast=lift<.001?sprite.cast:sprite.bodyCast;
+        if(cast)project(cast);
+        if(lift>=.001&&sprite.capCast&&exit<.99){
+          const r=bottleRegistration[index],rise=lift*(r.capBottom-r.capTop)*h*1.2;
+          project(sprite.capCast,rise*sunX+lift*w*.055,rise*sunY,2+lift*4,(1-exit)*.78);
+        }
+      }
       shadow.save();shadow.translate(p.x,base+1);shadow.scale(1,.13);
-      gradient=shadow.createRadialGradient(0,0,0,0,0,foot*.54);gradient.addColorStop(0,'rgba(57,58,40,.67)');gradient.addColorStop(.55,'rgba(75,70,49,.40)');gradient.addColorStop(1,'rgba(97,84,58,0)');
+      const gradient=shadow.createRadialGradient(0,0,0,0,0,foot*.54);gradient.addColorStop(0,'rgba(57,58,40,.67)');gradient.addColorStop(.55,'rgba(75,70,49,.40)');gradient.addColorStop(1,'rgba(97,84,58,0)');
       shadow.fillStyle=gradient;shadow.fillRect(-foot,-foot,foot*2,foot*2);shadow.restore();
-      if(lift>.01){shadow.save();shadow.translate(p.x+foot*(.28+lift*.5),base+foot*(.12+lift*.15));shadow.scale(1,.27);const radius=foot*(.22+lift*.25);gradient=shadow.createRadialGradient(0,0,0,0,0,radius);gradient.addColorStop(0,`rgba(91,79,49,${.20-lift*.10})`);gradient.addColorStop(1,'rgba(91,79,49,0)');shadow.fillStyle=gradient;shadow.fillRect(-radius,-radius,radius*2,radius*2);shadow.restore();}
       shadow.restore();
     };
     const bottle=(p:Pose,index:number,lift:number,exit:number,blur:number,time:number)=>{
@@ -68,7 +79,7 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       const bottom=silhouetteBounds(index,0).bottom*h;
       // Breathing changes scale about the contact point, never its vertical position.
       const breathing=story.current.reduced?1:1+Math.sin(time*.00065)*.0012;
-      groundShadow(p,index,lift);
+      groundShadow(p,index,lift,exit);
       ctx.save();ctx.globalAlpha=p.alpha;ctx.translate(p.x,p.y+bottom);ctx.scale(breathing,breathing);ctx.translate(0,-bottom);ctx.rotate(p.angle);
       if(blur>.05)ctx.filter=`blur(${blur.toFixed(2)}px)`;
       if(lift<.001&&!story.current.reduced){ctx.drawImage(sprite.closed,-w/2,-h/2,w,h);}

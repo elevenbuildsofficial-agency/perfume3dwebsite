@@ -9,10 +9,11 @@ export default defineConfig({
   define: {
     __MORROW_BOTTLES__: JSON.stringify(content.products.map(product => {
       const has = (url: string) => existsSync(fileURLToPath(new URL(`./public${url}`, import.meta.url)));
+      const delivery = (url: string) => has(url.replace(/\.png$/,'.webp')) ? url.replace(/\.png$/,'.webp') : url;
       const model = `/models/${product.id}.glb`;
       const capon = `/bottles/${product.id}-capon.png`, capoff = `/bottles/${product.id}-capoff.png`, cap = `/bottles/${product.id}-cap.png`;
       return has(model) ? { mode: 'glb', model, capon: product.image }
-        : [capon, capoff, cap].every(has) ? { mode: 'layers', capon, capoff, cap }
+        : [capon, capoff, cap].every(has) ? { mode: 'layers', capon: delivery(capon), capoff: delivery(capoff), cap: delivery(cap) }
         : { mode: 'photo', capon: product.image };
     })),
   },

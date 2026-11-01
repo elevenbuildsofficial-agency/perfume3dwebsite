@@ -5,10 +5,10 @@ declare const __MORROW_BOTTLES__: BottleAsset[];
 export const BOTTLE_SOURCE: 'auto' | 'photo' = 'auto';
 export const bottleAssets = __MORROW_BOTTLES__;
 
-// Registered cut lines in the existing photographs. Hidden nozzle geometry is
-// approximated only for this fallback; proper cap-off photographs replace it.
+// Registered wood cut lines; layered photographs expose their own machined
+// atomisers higher inside the cap envelope. Originals retain fallback coordinates.
 export const bottleRegistration = [
-  { capBottom: .309, capTop: .035, capLeft: .19, capRight: .81, nozzle: [.5, .315], baseWidth: .65 },
-  { capBottom: .345, capTop: .044, capLeft: .25, capRight: .75, nozzle: [.5, .35], baseWidth: .77 },
-  { capBottom: .270, capTop: .035, capLeft: .25, capRight: .75, nozzle: [.5, .278], baseWidth: .64 },
+  { capBottom: .309, capTop: .035, capLeft: .19, capRight: .81, nozzle: [.5, bottleAssets[0].mode==='layers'?.165:.315], baseWidth: .65 },
+  { capBottom: .345, capTop: .044, capLeft: .25, capRight: .75, nozzle: [.5, bottleAssets[1].mode==='layers'?.165:.35], baseWidth: .77 },
+  { capBottom: .270, capTop: .035, capLeft: .25, capRight: .75, nozzle: [.5, bottleAssets[2].mode==='layers'?.125:.278], baseWidth: .64 },
 ] as const;

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
 import type { StoryState } from './story';
+import { collectionLayout } from './collectionLayout';
 
 type Pose = [number, number, number, number, number]; // centre x/y, viewport height, roll, opacity
 const desktop: Pose[][] = [
@@ -33,8 +34,9 @@ export function useAboutMotion(paused:boolean) {
     const media=matchMedia('(prefers-reduced-motion: reduce)');
     let frame=0,previous=0,stage=0,previousScene=-1,selected=-1;
     let width=innerWidth,height=innerHeight,range=1,dirty=true;
+    let finalLayout=collectionLayout(width,height,'about');
     let px=0,py=0,tx=0,ty=0;
-    const measure=()=>{width=node.clientWidth;height=innerHeight;range=Math.max(1,node.offsetHeight-height);story.current.mobile=width<=1000;dirty=true;};
+    const measure=()=>{width=node.clientWidth;height=innerHeight;range=Math.max(1,node.offsetHeight-height);story.current.mobile=innerWidth<=1000;finalLayout=collectionLayout(width,height,'about',story.current.mobile);dirty=true;};
     const init=()=>{
       isReduced.current=media.matches||new URLSearchParams(location.search).get('motion')==='reduce';
       story.current.reduced=isReduced.current;setReduced(isReduced.current);lenis.current?.destroy();
@@ -59,7 +61,7 @@ export function useAboutMotion(paused:boolean) {
       const moving=Math.abs(px-tx)>.0001||Math.abs(py-ty)>.0001;
       if(scene===previousScene&&!dirty&&!moving){frame=requestAnimationFrame(draw);return;}
       previousScene=scene;dirty=false;
-      const compact=width<=1000,nature=peak(scene,2,.95),material=peak(scene,3,.84),memory=peak(scene,4,.94);
+      const compact=story.current.mobile,nature=peak(scene,2,.95),material=peak(scene,3,.84),memory=peak(scene,4,.94);
       node.style.setProperty('--scene',String(scene));node.style.setProperty('--film-progress',String(stage/4));
       node.style.setProperty('--nature',String(nature));node.style.setProperty('--material',String(material));node.style.setProperty('--memory',String(memory));
       node.style.setProperty('--story-ink',material>.53?'#f4eddd':'#29372d');
@@ -74,10 +76,11 @@ export function useAboutMotion(paused:boolean) {
       const poses=compact?mobile:desktop;
       bottles.current.forEach((image,index)=>{
         if(!image)return;const a=poses[index][from],b=poses[index][from+1];
-        const x=lerp(a[0],b[0],t)*width,y=lerp(a[1],b[1],t)*height;
-        const h=lerp(a[2],b[2],t)*(compact&&height<740?.85:1),rotation=lerp(a[3],b[3],t);
+        const scale=compact&&height<740?.85:1,finale=finalLayout[index];
+        const x=lerp(a[0]*width,from===3?finale.x:b[0]*width,t),y=lerp(a[1]*height,from===3?finale.y:b[1]*height,t);
+        const h=lerp(a[2]*scale,from===3?finale.height/height:b[2]*scale,t),rotation=lerp(a[3],from===3?finale.angle*180/Math.PI:b[3],t);
         const orbit=Math.sin(t*Math.PI)*(index===1?-1:1)*(from===3?width*.12:width*.035);
-        image.style.transform=`translate3d(${x+orbit+px*(index+1)*5}px,${y+py*7}px,0) translate(-50%,-50%) rotate(${rotation+px*2}deg) scale(${h})`;
+        image.style.transform=`translate3d(${x+orbit+px*(index+1)*5*(1-memory)}px,${y+py*7*(1-memory)}px,0) translate(-50%,-50%) rotate(${rotation+px*2*(1-memory)}deg) scale(${h})`;
         image.style.opacity=String(lerp(a[4],b[4],t));
       });
       const nearest=Math.round(scene);if(nearest!==selected){selected=nearest;setActive(nearest);}

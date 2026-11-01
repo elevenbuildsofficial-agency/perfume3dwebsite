@@ -46,7 +46,7 @@ After replacing source assets, run:
 
 This trims transparent margins, adds consistent padding, encodes large/mobile WebP versions and exports a JPEG social card. It does not invent product detail. Optimized assets are included, so this step is optional for a normal install/build.
 
-Adjust scene.photography for the hero/final grouping, product placement, scaling, tilt, parallax and float. Keep three products and five timeline stages to retain the current composition. Mobile/tablet stacking begins at 1000px in both content.ts and CSS. Outfit Variable is served from public/fonts with an early preload. For a different font, update src/fonts.css, the HTML preload URLs, font assets and content.font.
+Adjust scene.photography for product heights, shared baselines, tilt, parallax and float. The hero, final and About finale use collectionLayout.ts to centre their visible silhouettes with equal edge gaps, fit them to the available width and align their bases. productGeometry.ts is generated from alpha silhouettes; prepare:assets regenerates it after artwork changes. Keep three products and five timeline stages to retain the current composition. Mobile/tablet stacking begins at 1000px in both content.ts and CSS. Outfit Variable is served from public/fonts with an early preload. For a different font, update src/fonts.css, the HTML preload URLs, font assets and content.font.
 
 ## Reservation preview
 
@@ -63,6 +63,8 @@ To use a GLB, place it at public/models/hero.glb and pass heroModelUrl={content.
 ## Accessibility and QA
 
 Native prefers-reduced-motion removes idle/pointer movement and disables Lenis. The query ?motion=reduce previews the branch explicitly. Inactive panels are inert and hidden from assistive technology. Persistent reservation controls remain reachable, focus is visible, and the native dialog traps focus.
+
+Run npm run check:layout to independently rasterize the three bottle silhouettes and verify equal gaps, centring, baselines and clipping at phone, iPhone, Duo, tablet and desktop sizes, with both overlay and space-taking scrollbars.
 
 The development-only viewport helper hosts the real page at exact dimensions:
 

@@ -7,6 +7,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "check:content": "node qa/check-content.mjs",
+    "check:layout": "node qa/check-collection-layout.mjs",
     "prepare:assets": "node scripts/prepare-product-assets.mjs",
     "render:background": "node scripts/render-background-loop.mjs",
     "preview": "vite preview --host 127.0.0.1"

@@ -1,14 +1,23 @@
 import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { content } from './content';
 import type { StoryState } from './story';
+import { collectionLayout } from './collectionLayout';
+import { productGeometry } from './productGeometry';
 import styles from './PhotographicScene.module.css';
 
 type StoryRef = MutableRefObject<StoryState>;
 type Pose = Float32Array;
 
 export function ProductFallback() {
-  return <div className={styles.fallback}>
-    {content.products.map((product, index) => <img key={product.id} src={product.imageSmall} alt={product.imageAlt} className={styles[`bottle${index}`]} />)}
+  const container = useRef<HTMLDivElement>(null);
+  const [size,setSize] = useState({width:innerWidth,height:innerHeight});
+  useEffect(()=>{
+    const resize=()=>setSize({width:container.current?.clientWidth||innerWidth,height:container.current?.clientHeight||innerHeight});
+    resize();addEventListener('resize',resize);return()=>removeEventListener('resize',resize);
+  },[]);
+  const layout=collectionLayout(size.width,size.height,'hero',innerWidth<=content.scene.mobileBreakpoint);
+  return <div ref={container} className={styles.fallback}>
+    {content.products.map((product, index) => <img key={product.id} src={size.width<=1000?product.imageSmall:product.image} alt={product.imageAlt} style={{left:layout[index].x,top:layout[index].y,height:layout[index].height,width:layout[index].height*productGeometry[index].aspect,transform:`translate(-50%,-50%) rotate(${layout[index].angle}rad)`,zIndex:index===0?2:1}} />)}
   </div>;
 }
 
@@ -24,8 +33,12 @@ export default function PhotographicScene({ story }: { story: StoryRef }) {
     const pointer = { x: 0, y: 0 };
     let width = innerWidth; let height = innerHeight; let frame = 0; let live = true;
     let lastStage = -1; let lastTime = -1;
+    let heroLayout=collectionLayout(width,height,'hero');
+    let finalLayout=collectionLayout(width,height,'final');
     const resize = () => {
-      width = innerWidth; height = innerHeight;
+      width = node.clientWidth; height = node.clientHeight;
+      const mobile=innerWidth<=content.scene.mobileBreakpoint;
+      heroLayout=collectionLayout(width,height,'hero',mobile);finalLayout=collectionLayout(width,height,'final',mobile);
       const ratio = Math.min(devicePixelRatio || 1, content.scene.photography.pixelRatio);
       node.width = Math.round(width * ratio); node.height = Math.round(height * ratio);
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0); lastStage = -1;
@@ -34,18 +47,9 @@ export default function PhotographicScene({ story }: { story: StoryRef }) {
     const pose = (stage: number, index: number, target: Pose) => {
       const s = story.current; const config = content.scene.photography;
       const compact = height < 740;
-      const hero = s.mobile ? config.mobileHero : config.desktopHero;
-      if (stage === 0) {
-        target[0] = hero.x[index]; target[1] = hero.y[index];
-        target[2] = hero.height[index] * (s.mobile && compact ? 0.86 : 1);
-        target[3] = hero.tilt[index]; target[4] = 1;
-        if (!s.mobile && width < 1200 && index === 2) { target[1] -= 0.07; target[2] *= 0.90; }
-      } else if (stage === 4) {
-        const finale = s.mobile ? config.mobileFinal : config.desktopFinal;
-        target[0] = finale.x[index]; target[1] = finale.y[index];
-        target[2] = finale.height[index] * (s.mobile && compact ? 0.86 : 1);
-        target[3] = finale.tilt[index]; target[4] = 1;
-        if (!s.mobile && width < 1200 && index === 2) { target[1] -= 0.07; target[2] *= 0.90; }
+      if (stage === 0 || stage === 4) {
+        const item=(stage===0?heroLayout:finalLayout)[index];
+        target[0]=item.x/width;target[1]=item.y/height;target[2]=item.height/height;target[3]=item.angle;target[4]=1;
       } else if (index === stage - 1) {
         const focus = s.mobile ? config.mobileFocus : config.desktopFocus;
         target[0] = focus.x[index]; target[1] = focus.y;
@@ -61,6 +65,7 @@ export default function PhotographicScene({ story }: { story: StoryRef }) {
       if (s.reduced && s.stage === lastStage && lastTime !== -1) { frame = requestAnimationFrame(draw); return; }
       lastStage = s.stage; lastTime = time;
       ctx.clearRect(0, 0, width, height);
+      const grouped=Math.max(0,1-Math.min(s.stage,4-s.stage));
       for (let index = 0; index < 3; index++) {
         pose(s.from, index, first); pose(s.to, index, second);
         for (let channel = 0; channel < 5; channel++) result[index * 5 + channel] = first[channel] + (second[channel] - first[channel]) * s.mix;
@@ -72,15 +77,15 @@ export default function PhotographicScene({ story }: { story: StoryRef }) {
         if (!image || result[offset + 4] < 0.002) continue;
         const aspect = image.naturalWidth / image.naturalHeight;
         let imageHeight = result[offset + 2] * height;
-        const maxWidth = width * (s.mobile ? (s.stage < 0.5 && index !== 0 ? 0.42 : 0.80) : 0.44);
+        const maxWidth = width * (s.mobile ? 0.80 : 0.44);
         if (imageHeight * aspect > maxWidth) imageHeight = maxWidth / aspect;
         const imageWidth = imageHeight * aspect;
-        const float = s.reduced ? 0 : Math.sin(time * 0.00065 + index * 1.4) * content.scene.photography.floatPx;
-        const parallax = s.reduced ? 0 : pointer.x * content.scene.photography.parallaxPx;
+        const float = s.reduced ? 0 : (Math.sin(time*.00065)*grouped+Math.sin(time*.00065+index*1.4)*(1-grouped))*content.scene.photography.floatPx;
+        const parallax = s.reduced ? 0 : pointer.x*content.scene.photography.parallaxPx*(1-grouped);
         ctx.save();
         ctx.globalAlpha = result[offset + 4];
         ctx.translate(result[offset] * width + parallax * (index === 0 ? 1 : 0.5), result[offset + 1] * height + float);
-        ctx.rotate(result[offset + 3] + (s.reduced ? 0 : pointer.x * 0.025));
+        ctx.rotate(result[offset + 3] + (s.reduced ? 0 : pointer.x*0.025*(1-grouped)));
         ctx.drawImage(image, -imageWidth / 2, -imageHeight / 2, imageWidth, imageHeight);
         ctx.restore();
       }
@@ -89,7 +94,7 @@ export default function PhotographicScene({ story }: { story: StoryRef }) {
     resize();
     content.products.forEach((product, index) => {
       const image = new Image(); image.decoding = 'async';
-      image.onload = () => { if (live) { images[index] = image; lastStage = -1; if (index === 0) setReady(true); } };
+      image.onload = () => { if (live) { images[index] = image; lastStage = -1; if (images.every(Boolean)) setReady(true); } };
       image.src = width <= content.scene.mobileBreakpoint ? product.imageSmall : product.image;
     });
     addEventListener('resize', resize); addEventListener('pointermove', move, { passive: true });

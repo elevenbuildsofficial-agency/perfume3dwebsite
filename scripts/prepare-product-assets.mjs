@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
 import ts from 'typescript';
+import { prepareProductGeometry } from './product-geometry.mjs';
 
 const root = process.cwd();
 await fs.mkdir(path.join(root, 'public/images'), { recursive: true });
@@ -56,3 +57,4 @@ for (const [index, centerX, top, height] of [[1, 360, 185, 330], [2, 850, 140, 3
 }
 await sharp(card).composite(layers).jpeg({ quality: 90 }).toFile(path.join(root, 'public/images/morrow-collection.jpg'));
 console.log('Collection social card exported.');
+await prepareProductGeometry(root);

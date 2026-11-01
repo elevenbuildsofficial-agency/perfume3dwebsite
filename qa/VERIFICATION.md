@@ -62,3 +62,11 @@ The previous mobile Lighthouse numbers above describe the home-page build before
 - Bag opens from the pinned stage; Escape restores focus and resumes the same scene (observed scene 4). Home/About navigation cleans up and recreates the scroll controllers.
 - Explicit reduced motion exposes all five sections, removes video and CSS animations, and has zero horizontal overflow. The OS preference itself was not changed.
 - About photographs remain layered 2D assets; scale, roll, masking and foreground parallax create the camera movement. No live 3D model or frame-sequence source from Scrolltide is used.
+
+## Responsive collection alignment
+
+The home hero, final scene, loading fallback and About finale now share a silhouette-based layout. It accounts for transparent padding, each bottle's different width and its rotation. The complete visible row is centred, adjacent gaps are equal, bases align and the row scales down together when width is limited. Grouped idle movement remains in phase; pointer movement no longer changes the gaps at the settled collection scenes.
+
+npm run check:layout independently rasterizes the actual large/mobile WebP files at 20 viewport sizes, with and without a scrollbar gutter, across the three grouped scenes. Checks require centred bounds and equal gaps/baselines within two rendered pixels, positive gaps and no clipping. The matrix includes 375×667, 390×844, 393×852, 430×932, phone landscape, Surface Duo 540×720 / 720×540 and 1114×720, tablets, 1440×900 and 1920px desktop widths. These are viewport simulations, not physical-device Safari or hinge-hardware tests.
+
+All 120 raster checks passed. Fresh browser views checked the home finale at 390×844 and 540×720, the desktop hero/finale at 1440×900, and the About finale. The About desktop caption has additional separation below the aligned bottles. The production build and content checks passed; no production console errors were observed.

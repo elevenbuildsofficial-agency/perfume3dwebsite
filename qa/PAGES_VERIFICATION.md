@@ -1,5 +1,7 @@
 # Pages and daily rituals verification
 
+Hero handoff revision: the active renderer now uses one camera/bottle from the lifted atomiser into First Light. The former 30% switch remains a close-up; the camera settles at 72%, with text fully in at 76%. Checked 390 x 844 and 1440 x 900 compositions, matching forward/reverse state at 30%, no camera jump at the renderer boundary, and static reduced motion. Build, cinematic continuity and content checks pass. Captures: `handoff-mobile-30.png`, `handoff-mobile-55.png`, `handoff-mobile-76.png`.
+
 Verified in the production build using the in-app Chromium browser, with desktop and a 390 x 844 iframe viewport. These are browser viewport checks, not physical iPhone hardware measurements.
 
 - Mobile home wordmark: measured top 177.234375px at scroll 0 and scroll 40px; transform remained `none`. The anchor uses `svh`, avoiding browser toolbar height shifts.

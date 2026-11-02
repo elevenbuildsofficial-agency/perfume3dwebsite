@@ -1,8 +1,14 @@
 import { content } from './content';
 import { productGeometry } from './productGeometry';
+import { groundFrame } from './cinematic';
 
 export type CollectionScene = 'hero' | 'final' | 'about';
 export type CollectionPose = { x:number; y:number; height:number; angle:number };
+export function focusPose(width:number,height:number,index:number,mobile:boolean,reduced=false):CollectionPose {
+  const config=mobile?content.scene.photography.mobileFocus:content.scene.photography.desktopFocus;
+  const h=Math.min(config.height[index]*height*(mobile&&height<740?.84:1),width*(mobile?.8:.44)/productGeometry[index].aspect);
+  return {x:config.x[index]*width,y:groundFrame(width,height,0,0,index+1,reduced).baseline-silhouetteBounds(index,0).bottom*h,height:h,angle:0};
+}
 export const collectionOrder = [1,0,2] as const;
 const clamp = (value:number,min:number,max:number)=>Math.max(min,Math.min(max,value));
 

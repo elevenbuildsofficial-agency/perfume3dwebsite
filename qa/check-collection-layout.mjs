@@ -5,8 +5,8 @@ import { createCanvas, loadImage } from '@napi-rs/canvas';
 
 const compile=async name=>ts.transpileModule(await fs.readFile(new URL(`../src/${name}.ts`,import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
 const moduleUrl=text=>`data:text/javascript;base64,${Buffer.from(text).toString('base64')}`;
-const contentUrl=moduleUrl(await compile('content')),geometryUrl=moduleUrl(await compile('productGeometry'));
-const layoutCode=(await compile('collectionLayout')).replace("'./content'",JSON.stringify(contentUrl)).replace("'./productGeometry'",JSON.stringify(geometryUrl));
+const contentUrl=moduleUrl(await compile('content')),geometryUrl=moduleUrl(await compile('productGeometry')),cinematicUrl=moduleUrl(await compile('cinematic'));
+const layoutCode=(await compile('collectionLayout')).replace("'./content'",JSON.stringify(contentUrl)).replace("'./productGeometry'",JSON.stringify(geometryUrl)).replace("'./cinematic'",JSON.stringify(cinematicUrl));
 const {collectionLayout}=await import(moduleUrl(layoutCode));
 const large=await Promise.all(['01','02','03'].map(async n=>loadImage(await fs.readFile(new URL(`../public/images/morrow-${n}.webp`,import.meta.url)))));
 const small=await Promise.all(['01','02','03'].map(async n=>loadImage(await fs.readFile(new URL(`../public/images/morrow-${n}-small.webp`,import.meta.url)))));

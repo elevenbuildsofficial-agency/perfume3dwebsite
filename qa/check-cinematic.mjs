@@ -2,13 +2,26 @@ import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
 const code=ts.transpileModule(await fs.readFile(new URL('../src/cinematic.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
-const {heroBeat,chapterStage,scentLift,groundFrame,staticChapter,ingredientBeat,ingredientShot,ingredientAperture,ingredientLens,ingredientBottleStage,lifestyleBeat}=await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+const {heroBeat,heroHandoff,HERO_HANDOFF_END,chapterStage,scentLift,groundFrame,staticChapter,ingredientBeat,ingredientShot,ingredientAperture,ingredientLens,ingredientBottleStage,lifestyleBeat}=await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 for(const scroll of [0,.01,.03])assert.equal(heroBeat(scroll).lift,0,'Idle must not detach the cap.');
 assert.equal(heroBeat(.12).lift,1,'Cap must complete its lift by 12% of one viewport.');
 assert.equal(heroBeat(.095).text,0,'Hero copy must clear the bottle before the dolly.');
 assert.equal(heroBeat(.12).dolly,0,'Camera must wait for the cap lift.');
 assert.equal(heroBeat(.16).focus,1,'The focus pull must finish at 16%.');
-assert.equal(heroBeat(.30).dissolve,1,'The First Light dissolve must finish at 30%.');
+assert.equal(heroBeat(HERO_HANDOFF_END).dissolve,1,'The handoff must settle into First Light.');
+assert(heroHandoff(.30).camera>.8,'The close-up must continue through the former hard-cut boundary.');
+for(const boundary of [.235,.30,HERO_HANDOFF_END]){
+  const before=heroHandoff(boundary-.00001),after=heroHandoff(boundary+.00001);
+  for(const key of ['settle','camera','haze','copy'])assert(Math.abs(before[key]-after[key])<.001,`No ${key} jump across ${boundary}.`);
+}
+assert.equal(heroHandoff(HERO_HANDOFF_END).camera,0,'Camera must reach the chapter transform before changing render paths.');
+assert.equal(heroHandoff(HERO_HANDOFF_END).settle,1,'The same bottle must reach the exact chapter pose.');
+assert.equal(heroHandoff(.76).copy,1);
+assert.equal(heroHandoff(.64).haze,0,'Haze must recede before the final camera handoff.');
+assert(heroHandoff(.30).haze<=.30,'Haze must not wash the frame white.');
+const handoffFrames=Array.from({length:801},(_,i)=>heroHandoff(i/1000));
+for(let i=800;i>=0;i--)assert.deepEqual(heroHandoff(i/1000),handoffFrames[i],'Reverse scrolling must retrace the same camera.');
+for(const scroll of [0,.2,.3,.5,.8])assert.deepEqual(heroHandoff(scroll,true),heroHandoff(0,true),'Reduced motion must hold a still camera.');
 assert.equal(chapterStage(.30,1,4),1);assert.equal(chapterStage(2,1,4),2);assert.equal(chapterStage(3,1,4),3);assert.equal(chapterStage(4,1,4),4);
 const forward=Array.from({length:301},(_,i)=>heroBeat(i/1000));
 for(let i=300;i>=0;i--)assert.deepEqual(heroBeat(i/1000),forward[i],'Reversing scroll must reproduce the same cap/lens state.');

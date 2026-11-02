@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { content, worlds } from './content';
-import { heroBeat, range, ingredientBeat, ingredientLens, ingredientBottleStage, lifestyleBeat } from './cinematic';
+import { heroBeat, heroHandoff, range, ingredientBeat, ingredientLens, ingredientBottleStage, lifestyleBeat } from './cinematic';
 
 gsap.registerPlugin(ScrollTrigger);
 export type StoryState = { target: number; stage: number; mix: number; from: number; to: number; x: number; slosh: number; mobile: boolean; reduced: boolean; paused: boolean; pointerX: number; pointerY: number; scroll?: number; ingredientProgress?: number; ingredientVisibility?: number; ingredientEntry?:number; ingredientExit?:number; ingredientOriginX?:number; ingredientOriginY?:number; hasDay?:boolean; dayProgress?:number; dayVisibility?:number; dayEntry?:number; dayExit?:number; worldCovered?:boolean };
@@ -126,7 +126,7 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
         if (!panel) return;
         const distance = Math.abs(s.stage - index);
         let opacity = 1 - smooth(Math.max(0, Math.min(1, (distance - 0.12) / 0.58)));
-        if (!s.reduced && (s.scroll??0)<.30) opacity=index===0?beat.text:index===1?range(s.scroll??0,.28,.30):0;
+        if (!s.reduced && (s.scroll??0)<.76) opacity=index===0?beat.text:index===1?heroHandoff(s.scroll??0).copy:0;
         if (!s.reduced && index>1 && index<4) opacity*=range(s.stage,index-.36,index-.08);
         if(index===3)opacity*=1-range(ingredients.entry,.04,.28);
         const finalExit=hasDay?day.exit:ingredients.exit;

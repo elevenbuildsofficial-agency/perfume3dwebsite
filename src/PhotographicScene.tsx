@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { content } from './content';
 import type { StoryState } from './story';
-import { collectionLayout, silhouetteBounds, type CollectionPose } from './collectionLayout';
+import { collectionLayout, focusPose, silhouetteBounds, type CollectionPose } from './collectionLayout';
 import { productGeometry } from './productGeometry';
 import { bottleRegistration, bottleAssets } from './bottleAssets';
 import { loadBottleSprites, type BottleSprites } from './bottleSprites';
-import { clamp, groundFrame, heroBeat, lerp, neckCamera, range, scentLift } from './cinematic';
+import { clamp, groundFrame, heroBeat, heroHandoff, HERO_HANDOFF_END, lerp, neckCamera, range, scentLift } from './cinematic';
 import styles from './PhotographicScene.module.css';
 
 type StoryRef = MutableRefObject<StoryState>;
@@ -40,10 +40,8 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
     const pointer=(event:PointerEvent)=>{if(event.pointerType==='touch')return;tx=event.clientX/width-.5;ty=event.clientY/height-.5;};
     const pose=(stage:number,index:number):Pose=>{
       if(stage===0||stage===4)return {...(stage===0?heroLayout:finalLayout)[index],alpha:1};
-      const s=story.current,config=s.mobile?content.scene.photography.mobileFocus:content.scene.photography.desktopFocus;
-      const h=Math.min(config.height[index]*height*(s.mobile&&height<740?.84:1),width*(s.mobile?.8:.44)/productGeometry[index].aspect);
-      const bottom=silhouetteBounds(index,0).bottom;
-      return {x:index===stage-1?config.x[index]*width:(index<stage-1?-.35:1.35)*width,y:groundFrame(width,height,0,0,stage,s.reduced).baseline-bottom*h,height:h,angle:0,alpha:index===stage-1?1:0};
+      const s=story.current,p=focusPose(width,height,index,s.mobile,s.reduced);
+      return {...p,x:index===stage-1?p.x:(index<stage-1?-.35:1.35)*width,alpha:index===stage-1?1:0};
     };
     const mixPose=(a:Pose,b:Pose,t:number):Pose=>({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t),height:lerp(a.height,b.height,t),angle:lerp(a.angle,b.angle,t),alpha:lerp(a.alpha,b.alpha,t)});
     const groundShadow=(p:Pose,index:number,lift:number,exit:number)=>{
@@ -127,20 +125,24 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       // smoothing alive, but avoid repainting hidden full-resolution canvases.
       if(s.worldCovered||(s.ingredientVisibility??0)>.999){frame=requestAnimationFrame(draw);return;}
       ctx.clearRect(0,0,width,height);shadow.clearRect(0,0,width,height);
-      const scroll=s.scroll??0,beat=heroBeat(scroll,s.reduced),ground=groundFrame(width,height,s.pointerX,s.pointerY,s.stage,s.reduced);
+      const scroll=s.scroll??0,beat=heroBeat(scroll,s.reduced),handoff=heroHandoff(scroll,s.reduced),ground=groundFrame(width,height,s.pointerX,s.pointerY,s.stage,s.reduced);
       const render=(poses:Pose[],lifts:number[],exits:number[],focus:number,alpha:number,camera:boolean)=>{
         ctx.save();shadow.save();
-        if(camera){const hp=heroLayout[0],neckY=hp.y+(bottleRegistration[0].nozzle[1]-.5)*hp.height,c=neckCamera(width,height,hp.x,neckY,beat.dolly);for(const target of [ctx,shadow]){target.translate(hp.x+c.x,neckY+c.y);target.scale(c.scale,c.scale);target.translate(-hp.x,-neckY);}}
+        if(camera){const hp=poses[0],neckY=hp.y+(bottleRegistration[0].nozzle[1]-.5)*hp.height,c=neckCamera(width,height,hp.x,neckY,handoff.camera);for(const target of [ctx,shadow]){target.translate(hp.x+c.x,neckY+c.y);target.scale(c.scale,c.scale);target.translate(-hp.x,-neckY);}}
         ctx.translate(ground.x,ground.y);shadow.translate(ground.x,ground.y);
         for(const index of [1,2,0]){const p={...poses[index],alpha:poses[index].alpha*alpha};bottle(p,index,lifts[index],exits[index],index===0?0:focus*(s.mobile?2.7:4),time);vapour(p,index,lifts[index]*(1-exits[index]),time);}
         ctx.restore();shadow.restore();
       };
-      if(!s.reduced&&scroll<.30){
-        const incoming=[0,1,2].map(index=>pose(1,index));
-        render(incoming,[1,0,0],[.72,0,0],0,beat.dissolve,false);
-        render(heroLayout.map(p=>({...p,alpha:1})),[beat.lift,0,0],[beat.exit,0,0],beat.focus,1-beat.dissolve,true);
-        // Backlit scent becomes the dissolve, hiding the camera reset in both directions.
-        const fog=Math.sin(Math.PI*range(scroll,.145,.30))*.88;
+      if(!s.reduced&&scroll<HERO_HANDOFF_END){
+        const poses=[0,1,2].map(index=>{
+          const p=mixPose({...heroLayout[index],alpha:1},pose(1,index),handoff.settle);
+          if(index!==0)p.alpha*=handoff.sides;
+          return p;
+        });
+        const lift=scentLift(1,0,false),exit=range(lift,.85,1)*.58;
+        render(poses,[lerp(beat.lift,lift,handoff.settle),0,0],[lerp(beat.exit,exit,handoff.settle),0,0],beat.focus,1,true);
+        // Haze recedes with the same camera; no white flash or hidden shot reset.
+        const fog=handoff.haze;
         if(fog>.001){const g=ctx.createRadialGradient(width*.5,height*.48,0,width*.5,height*.48,Math.max(width,height)*.8);g.addColorStop(0,`rgba(255,245,218,${fog})`);g.addColorStop(.5,`rgba(248,237,210,${fog*.84})`);g.addColorStop(1,`rgba(241,233,212,${fog*.25})`);ctx.fillStyle=g;ctx.fillRect(0,0,width,height);}
       } else {
         const stage=!s.reduced&&scroll>=.30?Math.max(1,s.stage):s.stage;
@@ -151,7 +153,7 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       }
       // Scent-coloured flecks remain delicate; no particles in reduced motion.
       if(!s.reduced&&s.stage>.85&&s.stage<3.7){const index=clamp(Math.round(s.stage)-1,0,2);ctx.save();ctx.fillStyle=content.products[index].palette.a;for(let i=0;i<13;i++){const life=(time*.000012+i*.077)%1;ctx.globalAlpha=Math.sin(life*Math.PI)*.26;const x=width*(.16+(i*.137)% .70)+Math.sin(life*5+i)*12,y=height*(.76-life*.53);ctx.beginPath();ctx.ellipse(x,y,1.2+i%2,.7,life*5,0,Math.PI*2);ctx.fill();}ctx.restore();}
-      node.dataset.scroll=scroll.toFixed(4);node.dataset.lift=beat.lift.toFixed(4);node.dataset.dissolve=beat.dissolve.toFixed(4);
+      node.dataset.scroll=scroll.toFixed(4);node.dataset.lift=beat.lift.toFixed(4);node.dataset.dissolve=handoff.settle.toFixed(4);node.dataset.camera=handoff.camera.toFixed(4);
       frame=requestAnimationFrame(draw);
     };
     resize();content.products.forEach((_,index)=>{loadBottleSprites(index).then(sprite=>{if(!live)return;sprites[index]=sprite;dirty=true;if(sprites.every(Boolean))setReady(true);}).catch(error=>console.error(error));});

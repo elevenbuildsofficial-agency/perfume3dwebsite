@@ -10,8 +10,23 @@ export function heroBeat(scroll: number, reduced = false) {
   const lift = 1 - (1 - clamp((scroll - .03) / .09)) ** 3;
   return {
     lift, focus: range(scroll, .08, .16), dolly: range(scroll, .12, .245),
-    dissolve: range(scroll, .225, .30), mist: range(scroll, .08, .16),
+    dissolve: range(scroll, .235, .72), mist: range(scroll, .08, .16),
     text: 1 - range(scroll, .025, .095), exit: range(scroll, .15, .245),
+  };
+}
+
+export const HERO_HANDOFF_END = .72;
+// One camera retreats from the lifted atomiser into the chapter composition.
+// Both ends settle at zero velocity, including when touch scroll reverses.
+export function heroHandoff(scroll:number,reduced=false) {
+  if(reduced)return {settle:1,camera:0,haze:0,copy:1,sides:0};
+  const settle=range(scroll,.235,HERO_HANDOFF_END);
+  return {
+    settle,
+    camera:heroBeat(scroll).dolly*(1-settle),
+    haze:range(scroll,.145,.225)*(1-range(scroll,.25,.64))*.30,
+    copy:range(scroll,.52,.76),
+    sides:1-range(scroll,.12,.235),
   };
 }
 

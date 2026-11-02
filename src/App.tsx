@@ -5,6 +5,7 @@ import PhotographicScene, { ProductFallback } from './PhotographicScene';
 import AmbientBackground from './AmbientBackground';
 import IngredientStory from './IngredientStory';
 import LifestyleStory from './LifestyleStory';
+import CollectionGallery from './CollectionGallery';
 import Header, { BagIcon } from './Header';
 import styles from './App.module.css';
 
@@ -147,7 +148,8 @@ export default function App({ heroModelUrl, cartCount = 0, cartOpen = false, onO
         </article>
       </section>)}
 
-      <IngredientStory story={state} onScent={goTo} onCollection={()=>goTo('day')} />
+      <IngredientStory story={state} onScent={goTo} onCollection={()=>goTo('gallery')} />
+      <CollectionGallery story={state} onScent={goTo} onContinue={()=>goTo('day')}/>
       <LifestyleStory story={state} onFind={()=>onNavigate('/find-your-morrow/')} onContinue={()=>goTo(4)}/>
 
       <section id="chapter-4" className={styles.section} aria-label={content.nav[2].label}>
@@ -160,9 +162,9 @@ export default function App({ heroModelUrl, cartCount = 0, cartOpen = false, onO
       </section>
     </main>
 
-    <div className={styles.progress} role="progressbar" aria-label={content.ui.progress} aria-valuemin={0} aria-valuemax={6} aria-valuenow={active}><span /></div>
-    <nav className={styles.chapterNav} aria-label={content.ui.chapters} inert={active===4||active===5} aria-hidden={active===4||active===5} style={{visibility:active===4||active===5?'hidden':undefined}}>{content.chapters.map((chapter, index) => <button key={chapter.id} onClick={() => goTo(index + 1)} aria-label={chapter.short} aria-current={active === index + 1 ? 'step' : undefined}><span>{chapter.number}</span><i /></button>)}</nav>
-    <div className={`${styles.pageIndex} ${active > 0 ? styles.hideIndex : ''}`} aria-hidden="true"><span>0{active + 1}</span><i />{String(content.chapters.length + 4).padStart(2, '0')}</div>
+    <div className={styles.progress} role="progressbar" aria-label={content.ui.progress} aria-valuemin={0} aria-valuemax={7} aria-valuenow={active}><span /></div>
+    <nav className={styles.chapterNav} aria-label={content.ui.chapters} inert={active>=4&&active<=6} aria-hidden={active>=4&&active<=6} style={{visibility:active>=4&&active<=6?'hidden':undefined}}>{content.chapters.map((chapter, index) => <button key={chapter.id} onClick={() => goTo(index + 1)} aria-label={chapter.short} aria-current={active === index + 1 ? 'step' : undefined}><span>{chapter.number}</span><i /></button>)}</nav>
+    <div className={`${styles.pageIndex} ${active > 0 ? styles.hideIndex : ''}`} aria-hidden="true"><span>0{active + 1}</span><i />{String(content.chapters.length + 5).padStart(2, '0')}</div>
     <ReservationDialog open={reserveOpen} onClose={() => setReserveOpen(false)} onOpenChange={modalMotion} productIndex={selectedProduct} onProductChange={setSelectedProduct} />
   </div>;
 }

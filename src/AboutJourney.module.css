@@ -77,3 +77,7 @@
 .film[data-reduced="true"] .controls{position:relative;left:auto;right:auto;bottom:auto;margin:35px 5.6%;color:#29372d}.film[data-reduced="true"] .copyright{position:relative;left:auto;bottom:auto;padding:0 5.6% 25px}.film[data-reduced="true"] .explore{position:static;width:max-content;margin-top:25px}.film[data-reduced="true"] .chapterButtons button{opacity:1}.film[data-reduced="true"] .poem>span{opacity:1}
 @media(max-width:1000px){.film[data-reduced="true"] .panel{min-height:820px;height:110svh}.film[data-reduced="true"] .copy{left:25px;right:25px;width:auto;top:60%}.film[data-reduced="true"] .stillImage{left:15%;top:12%;height:44%;width:70%}.film[data-reduced="true"] .description{margin-top:0}.film[data-reduced="true"] .controls{margin:25px}.film[data-reduced="true"] .next{display:none}}
 @media(prefers-reduced-motion:reduce){.film *{transition:none!important;animation:none!important}}
+
+.memories{position:absolute;inset:0;z-index:4;perspective:1100px;transform-style:preserve-3d;pointer-events:none}.memories>div{position:absolute;left:0;top:0;width:13vw;max-width:190px;height:22svh;max-height:230px;padding:7px 7px 24px;background:#f6f0e4;box-shadow:0 15px 35px #1019121a;opacity:0;will-change:transform,opacity}.memories img{width:100%;height:100%;object-fit:cover}.memories span{position:absolute;bottom:7px;left:8px;font-size:9px;font-weight:500;color:#29372d}
+@media(max-width:1000px){.memories>div{width:22vw;height:16svh;padding:5px 5px 20px}.memories span{font-size:8px;left:6px;bottom:6px}}
+.film[data-reduced=true] .memories{display:none}

@@ -9,6 +9,7 @@
     "check:content": "node qa/check-content.mjs",
     "check:layout": "node qa/check-collection-layout.mjs",
     "check:cinematic": "node qa/check-cinematic.mjs",
+    "check:reference": "node qa/check-reference-motion.mjs",
     "prepare:assets": "node scripts/prepare-product-assets.mjs",
     "render:background": "node scripts/render-background-loop.mjs",
     "preview": "vite preview --host 127.0.0.1",

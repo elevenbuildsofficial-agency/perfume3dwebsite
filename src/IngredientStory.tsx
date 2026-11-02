@@ -1,6 +1,9 @@
 import { useEffect, useRef, type CSSProperties, type MutableRefObject } from 'react';
 import type { StoryState } from './story';
 import { ingredientShot, range } from './cinematic';
+import { ingredientSubject } from './referenceMotion';
+import { content } from './content';
+import { productGeometry } from './productGeometry';
 import styles from './IngredientStory.module.css';
 
 export const ingredientNotes = [
@@ -11,7 +14,7 @@ export const ingredientNotes = [
 ] as const;
 
 export default function IngredientStory({story,onScent,onCollection}:{story:MutableRefObject<StoryState>;onScent:(chapter:number)=>void;onCollection:()=>void}) {
-  const root=useRef<HTMLDivElement>(null),cards=useRef<(HTMLElement|null)[]>([]);
+  const root=useRef<HTMLDivElement>(null),cards=useRef<(HTMLElement|null)[]>([]),subjects=useRef<(HTMLDivElement|null)[]>([]),foreground=useRef<(HTMLImageElement|null)[]>([]);
   useEffect(()=>{
     const node=root.current;if(!node)return;
     let frame=0,lastVisible=-1,lastActive=-1,width=node.clientWidth,height=node.clientHeight;
@@ -31,7 +34,19 @@ export default function IngredientStory({story,onScent,onCollection}:{story:Muta
         node.style.setProperty('--title-reveal',String(interfaceReveal*(s.reduced?1:1-range(Math.abs(cursor-Math.round(cursor)),.10,.30))));
         node.dataset.progress=progress.toFixed(4);node.dataset.active=ingredientNotes[Math.round(cursor)].id;
         node.dataset.reduced=String(s.reduced);node.dataset.aperture=visibility.toFixed(4);
+        subjects.current.forEach((subject,index)=>{
+          if(!subject)return;const p=ingredientSubject(cursor,index,s.reduced),h=height*(s.mobile?.30:.49)*p.scale;
+          subject.style.width=`${h*productGeometry[index].aspect}px`;subject.style.height=`${h}px`;
+          subject.style.opacity=String(p.alpha*interfaceReveal);subject.style.visibility=p.alpha>.001?'visible':'hidden';
+          subject.style.transform=`translate3d(${width*((s.mobile?.52:.73)+p.x)+s.pointerX*9}px,${height*((s.mobile?.445:.54)+p.y)}px,0) translate(-50%,-50%) perspective(1000px) rotateY(${p.yaw}deg) rotateZ(${p.roll}deg)`;
+        });
+        foreground.current.forEach((image,index)=>{
+          if(!image)return;const distance=cursor-index,alpha=s.reduced?Number(Math.round(cursor)===index):1-range(Math.abs(distance),.15,.8),turn=s.reduced?index*.8:cursor*.9+index*.8;
+          image.style.opacity=String(alpha*interfaceReveal*.92);image.style.visibility=alpha>.001?'visible':'hidden';
+          image.style.transform=`translate3d(${width*((s.mobile?.50:.72)+Math.sin(turn)*(s.mobile?.36:.22))}px,${height*((s.mobile?.44:.51)+Math.cos(turn)*.13)}px,0) translate(-50%,-50%) rotate(${s.reduced?0:cursor*37+index*23}deg)`;
+        });
         const active=Math.round(cursor);
+        node.style.setProperty('--note-paper',ingredientNotes[active].colour);
         if(active!==lastActive){
           node.querySelectorAll<HTMLButtonElement>('[data-ingredient-step]').forEach((button,i)=>{
             if(i===active)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');
@@ -54,6 +69,8 @@ export default function IngredientStory({story,onScent,onCollection}:{story:Muta
           card.style.setProperty('--focus-blur',`${shot.focus}px`);
           card.style.setProperty('--copy-reveal',String(shot.copy*interfaceReveal));
           card.style.setProperty('--detail-y',`${shot.copyY}px`);
+          card.style.setProperty('--memory-y',`${s.reduced?0:-distance*height*.36}px`);
+          card.style.setProperty('--memory-turn',`${s.reduced?0:index%2?-9+distance*16:9+distance*16}deg`);
           // Near specimens cross the lens faster than the subject, creating depth.
           card.style.setProperty('--satellite-depth',`${s.reduced?0:(shot.scale-1)*75}px`);
           card.style.setProperty('--satellite-x',`${s.reduced?0:Math.sin(time*.00024+index)*7+distance*width*.24}px`);
@@ -75,8 +92,11 @@ export default function IngredientStory({story,onScent,onCollection}:{story:Muta
     <div ref={root} className={styles.stage} aria-hidden="true" inert>
       <div className={styles.masthead}><span>The notes, up close</span><span>Morrow / An ingredient story</span></div>
       <h2 className={styles.title}>A world inside<br/>every bottle.</h2>
+      {content.products.map((product,index)=><div ref={el=>{subjects.current[index]=el;}} className={styles.subject} key={product.id} aria-hidden="true"><span>{product.name}</span><img src={`/bottles/${product.id}-capon.webp`} alt=""/></div>)}
+      {ingredientNotes.map((note,index)=><img ref={el=>{foreground.current[index]=el;}} className={styles.foregroundNote} key={note.id} src={`/ingredients/${note.id}.webp`} alt=""/>)}
       {ingredientNotes.map((note,index)=><article ref={el=>{cards.current[index]=el;}} key={note.id} className={`${styles.card} ${styles[note.id]}`} style={{'--ingredient-ink':note.ink,'--ingredient-paper':note.colour,zIndex:index+1} as CSSProperties} aria-label={note.name} inert aria-hidden="true">
         <div className={styles.daylight}/>
+        <div className={styles.memory} aria-hidden="true"><img src={`/images/day-${index===0?'morning':index===3?'outside':'evening'}-mobile.webp`} alt=""/><span>{note.scent}</span></div>
         <div className={styles.specimens} aria-hidden="true">
           {Array.from({length:note.count},(_,part)=><div key={part} className={`${styles.specimen} ${part===0?styles.main:styles[`satellite${part}`]}`}><img src={`/ingredients/${note.id}.webp`} alt="" loading="eager" fetchPriority="low" decoding="async" style={{'--float-delay':`${part*-2.7-index}s`,'--float-duration':`${9+part*1.3}s`} as CSSProperties}/></div>)}
         </div>
@@ -88,8 +108,9 @@ export default function IngredientStory({story,onScent,onCollection}:{story:Muta
         </div>
         <span className={styles.srOnly}>{note.alt}</span>
       </article>)}
+      <div className={styles.navigationShade} aria-hidden="true"/>
       <nav className={styles.steps} aria-label="Ingredient chapters">{ingredientNotes.map((note,i)=><button key={note.id} data-ingredient-step={i} onClick={()=>goToIngredient(i)}><span>0{i+1}</span>{note.name}<i/></button>)}</nav>
-      <button className={styles.collection} onClick={onCollection}>Make it part of your day<span aria-hidden="true">↓</span></button>
+      <button className={styles.collection} onClick={onCollection}>Explore the collection<span aria-hidden="true">↓</span></button>
     </div>
   </section>;
 }

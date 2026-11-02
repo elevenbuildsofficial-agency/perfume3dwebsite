@@ -31,6 +31,7 @@ export function useAboutMotion(paused:boolean) {
   useEffect(()=>{pause.current=paused;story.current.paused=paused;if(paused)lenis.current?.stop();else lenis.current?.start();},[paused]);
   useEffect(()=>{
     const node=root.current;if(!node)return;
+    const memories=node.querySelectorAll<HTMLElement>('[data-about-memory]');
     const media=matchMedia('(prefers-reduced-motion: reduce)');
     let frame=0,previous=0,stage=0,previousScene=-1,selected=-1;
     let width=innerWidth,height=innerHeight,range=1,dirty=true;
@@ -73,14 +74,19 @@ export function useAboutMotion(paused:boolean) {
       node.style.setProperty('--orbit-turn',`${scene*35}deg`);
       node.style.setProperty('--nature-reveal',`${lerp(36,0,nature)}%`);
       node.style.setProperty('--macro-crop',`${compact?peak(scene,1,.8)*44:0}%`);
+      memories.forEach((card,index)=>{
+        const theta=(scene-1)*.85+index*2.1,envelope=Math.sin(Math.PI*clamp(scene/4));
+        const x=width*((compact?.5:.71)+Math.cos(theta)*(compact?.38:.16)),y=height*((compact?.34:.40)+Math.sin(theta)*(compact?.12:.15));
+        card.style.opacity=String(envelope*.88);card.style.transform=`translate3d(${x}px,${y}px,${Math.sin(theta)*45}px) translate(-50%,-50%) rotateY(${Math.sin(theta)*19}deg) rotateZ(${Math.cos(theta)*12}deg)`;
+      });
       const poses=compact?mobile:desktop;
       bottles.current.forEach((image,index)=>{
         if(!image)return;const a=poses[index][from],b=poses[index][from+1];
         const scale=compact&&height<740?.85:1,finale=finalLayout[index];
         const x=lerp(a[0]*width,from===3?finale.x:b[0]*width,t),y=lerp(a[1]*height,from===3?finale.y:b[1]*height,t);
         const h=lerp(a[2]*scale,from===3?finale.height/height:b[2]*scale,t),rotation=lerp(a[3],from===3?finale.angle*180/Math.PI:b[3],t);
-        const orbit=Math.sin(t*Math.PI)*(index===1?-1:1)*(from===3?width*.12:width*.035);
-        image.style.transform=`translate3d(${x+orbit+px*(index+1)*5*(1-memory)}px,${y+py*7*(1-memory)}px,0) translate(-50%,-50%) rotate(${rotation+px*2*(1-memory)}deg) scale(${h})`;
+        const travel=Math.sin(t*Math.PI),orbit=travel*(index===1?-1:1)*(from===3?width*.12:width*.095),arc=travel*height*(from===3?-.04:index===1?.08:-.10);
+        image.style.transform=`translate3d(${x+orbit+px*(index+1)*5*(1-memory)}px,${y+arc+py*7*(1-memory)}px,0) translate(-50%,-50%) perspective(1200px) rotateY(${travel*(index===1?-13:13)}deg) rotate(${rotation+travel*(index-1)*8+px*2*(1-memory)}deg) scale(${h*(1+travel*.06)})`;
         image.style.opacity=String(lerp(a[4],b[4],t));
       });
       const nearest=Math.round(scene);if(nearest!==selected){selected=nearest;setActive(nearest);}

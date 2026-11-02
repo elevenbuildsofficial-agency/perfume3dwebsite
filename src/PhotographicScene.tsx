@@ -8,6 +8,7 @@ import { loadBottleSprites, type BottleSprites } from './bottleSprites';
 import { clamp, groundFrame, heroBeat, heroHandoff, HERO_HANDOFF_END, lerp, neckCamera, range, scentLift } from './cinematic';
 import styles from './PhotographicScene.module.css';
 import { collectionReturn } from './collectionReturn';
+import { scentTravel } from './referenceMotion';
 
 type StoryRef = MutableRefObject<StoryState>;
 type Pose = CollectionPose & { alpha: number };
@@ -153,7 +154,7 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       } else {
         const stage=!s.reduced&&scroll>=.30?Math.max(1,s.stage):s.stage;
         const from=Math.min(3,Math.floor(stage)),to=from+1,t=stage===s.stage?s.mix:0;
-        const poses=[0,1,2].map(index=>mixPose(pose(from,index),pose(to,index),t));
+        const poses=[0,1,2].map(index=>from>=1&&to<=3?scentTravel(pose(from,index),pose(to,index),t,width,height,s.reduced):mixPose(pose(from,index),pose(to,index),t));
         const lifts=[0,1,2].map(index=>scentLift(stage,index,s.reduced));
         render(poses,lifts,lifts.map(lift=>s.reduced?1:range(lift,.85,1)*.58),0,1,false);
       }

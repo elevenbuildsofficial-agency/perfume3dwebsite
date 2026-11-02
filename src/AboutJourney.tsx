@@ -18,6 +18,7 @@ export default function AboutJourney({paused,onExplore}:{paused:boolean;onExplor
       <div className={styles.portal}><span/><i/></div>
       <div className={styles.typography}>{c.filmBackdrop}</div>
       <div className={styles.orbits}><i/><i/><i/><span>{c.materialCaption}</span></div>
+      <div className={styles.memories}>{['morning','evening','outside'].map((moment,index)=><div key={moment} data-about-memory={index}><img src={`/images/day-${moment}-mobile.webp`} alt=""/><span>{content.products[index].name}</span></div>)}</div>
       <div className={styles.products}>{content.products.map((product,index)=><img ref={image=>{bottles.current[index]=image;}} key={product.id} className={styles[`bottle${index}`]} src={product.image} srcSet={`${product.imageSmall} 480w, ${product.image} 1200w`} sizes="(max-width:1000px) 85vw, 65vw" alt="" fetchPriority={index===0?'high':'auto'} decoding="async"/>)}</div>
       <img className={styles.foreground} src={content.scene.background.foliage} alt=""/>
       <div className={styles.lightSweep}/><div className={styles.bottomLight}/><div className={styles.frame}><i/><i/><i/><i/></div>

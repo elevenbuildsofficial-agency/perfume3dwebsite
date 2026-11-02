@@ -34,6 +34,14 @@ for (const asset of ['/videos/morrow-orchard-loop.mp4', '/videos/morrow-orchard-
   try { await fs.access(new URL(`../dist${asset}`, import.meta.url)); }
   catch { console.error(`Missing built background asset: ${asset}`); failures++; }
 }
+for(const page of ['contact','find-your-morrow']){
+  const output=await fs.readFile(new URL(`../dist/${page}/index.html`,import.meta.url),'utf8');
+  if(!output.includes(`${content.seo.siteUrl}/${page}/`)||!output.includes('application/ld+json')){console.error(`Missing route metadata: ${page}`);failures++;}
+}
+for(const id of ['morning','evening','outside'])for(const suffix of ['','-mobile']){
+  try{await fs.access(new URL(`../dist/images/day-${id}${suffix}.webp`,import.meta.url));}
+  catch{console.error(`Missing lifestyle image: ${id}${suffix}`);failures++;}
+}
 if (worlds.length !== content.scene.positions.length) { console.error('Timeline/world counts differ.'); failures++; }
 console.log(failures ? `${failures} checks failed` : 'Content contrast, timeline, media and home/About SEO checks passed.');
 process.exitCode = failures ? 1 : 0;

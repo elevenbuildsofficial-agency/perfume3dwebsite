@@ -1,7 +1,6 @@
 import { useEffect, useRef, type CSSProperties, type MutableRefObject } from 'react';
 import type { StoryState } from './story';
-import { ingredientAperture, ingredientLens, ingredientShot, lerp, range } from './cinematic';
-import { ingredientMasks } from './ingredientMasks';
+import { ingredientShot, range } from './cinematic';
 import styles from './IngredientStory.module.css';
 
 export const ingredientNotes = [
@@ -17,28 +16,16 @@ export default function IngredientStory({story,onScent,onCollection}:{story:Muta
     const node=root.current;if(!node)return;
     let frame=0,lastVisible=-1,lastActive=-1,width=node.clientWidth,height=node.clientHeight;
     const resize=()=>{width=node.clientWidth;height=node.clientHeight;};
-    const aperture=(amount:number,x:number,y:number,mask=1,turn=0)=>{
-      if(amount>=.99999)return 'none';
-      if(amount<=0)return 'circle(0px)';
-      const lens=ingredientAperture(width,height,amount,x,y);
-      const scale=lens.radius*Math.sqrt(amount)*1.12,angle=(turn+(1-amount)*-14)*Math.PI/180;
-      const points=ingredientMasks[mask].map(([px,py])=>[x+(px*Math.cos(angle)-py*Math.sin(angle))*scale,y+(px*Math.sin(angle)+py*Math.cos(angle))*scale]);
-      const mid=(a:number[],b:number[])=>`${((a[0]+b[0])/2).toFixed(1)} ${((a[1]+b[1])/2).toFixed(1)}`;
-      let path=`M${mid(points[points.length-1],points[0])}`;
-      points.forEach((point,i)=>{path+=`Q${point[0].toFixed(1)} ${point[1].toFixed(1)} ${mid(point,points[(i+1)%points.length])}`;});
-      return `path('${path}Z')`;
-    };
     const animate=(time:number)=>{
       const s=story.current,visibility=s.ingredientVisibility??0,progress=s.ingredientProgress??0,cursor=progress*3;
       if(s.paused||document.hidden){frame=requestAnimationFrame(animate);return;}
       if(visibility!==lastVisible){
-        node.style.opacity='1';node.style.visibility=visibility<.00001?'hidden':'visible';
-        node.inert=visibility<.98;node.setAttribute('aria-hidden',String(visibility<.98));lastVisible=visibility;
+        node.style.opacity=String(visibility);node.style.visibility=visibility<.00001?'hidden':'visible';
+        lastVisible=visibility;
       }
+      node.inert=visibility<.98||(s.ingredientExit??0)>.01;node.setAttribute('aria-hidden',String(node.inert));
       if(visibility>.00001){
         const entry=s.ingredientEntry??1,exit=s.ingredientExit??0;
-        const lens=ingredientLens(width,height,entry,s.ingredientOriginX,s.ingredientOriginY);
-        node.style.clipPath=s.reduced?'none':aperture(visibility,lerp(lens.x,width*.5,exit),lerp(lens.y,height*.35,exit));
         const interfaceReveal=s.reduced?1:range(entry,.88,1)*(1-range(exit,0,.24));
         node.style.setProperty('--interface-reveal',String(interfaceReveal));
         node.style.setProperty('--title-reveal',String(interfaceReveal*(s.reduced?1:1-range(Math.abs(cursor-Math.round(cursor)),.10,.30))));
@@ -54,11 +41,10 @@ export default function IngredientStory({story,onScent,onCollection}:{story:Muta
         cards.current.forEach((card,index)=>{
           if(!card)return;
           const shot=ingredientShot(cursor,index,s.reduced),distance=cursor-index;
-          card.style.opacity='1';card.style.visibility=shot.visible?'visible':'hidden';
-          card.style.clipPath=s.reduced?'none':aperture(shot.reveal,width*(s.mobile?.5:[.72,.72,.65,.70][index]),height*(s.mobile?.45:.49),index===1?0:1,index===2?65:index===3?-25:0);
+          card.style.opacity=String(shot.reveal);card.style.visibility=shot.visible?'visible':'hidden';
           card.inert=!shot.visible||shot.copy<.5;card.setAttribute('aria-hidden',String(!shot.visible||shot.copy<.5));
           if(!shot.visible)return;
-          const portalZoom=s.reduced?0:(1-entry)*2.4+exit*2.5;
+          const portalZoom=s.reduced?0:(1-entry)*.08+exit*.08;
           card.style.setProperty('--travel-scale',String(shot.scale+portalZoom));
           card.style.setProperty('--travel-x',`${s.reduced?0:shot.x*width+s.pointerX*15}px`);
           card.style.setProperty('--travel-y',`${s.reduced?0:shot.y*height+s.pointerY*10}px`);
@@ -103,7 +89,7 @@ export default function IngredientStory({story,onScent,onCollection}:{story:Muta
         <span className={styles.srOnly}>{note.alt}</span>
       </article>)}
       <nav className={styles.steps} aria-label="Ingredient chapters">{ingredientNotes.map((note,i)=><button key={note.id} data-ingredient-step={i} onClick={()=>goToIngredient(i)}><span>0{i+1}</span>{note.name}<i/></button>)}</nav>
-      <button className={styles.collection} onClick={onCollection}>Back to the collection<span aria-hidden="true">↓</span></button>
+      <button className={styles.collection} onClick={onCollection}>Make it part of your day<span aria-hidden="true">↓</span></button>
     </div>
   </section>;
 }

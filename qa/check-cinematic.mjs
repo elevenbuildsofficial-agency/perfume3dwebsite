@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
 const code=ts.transpileModule(await fs.readFile(new URL('../src/cinematic.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
-const {heroBeat,chapterStage,scentLift,groundFrame,staticChapter,ingredientBeat,ingredientShot,ingredientAperture,ingredientLens,ingredientBottleStage}=await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+const {heroBeat,chapterStage,scentLift,groundFrame,staticChapter,ingredientBeat,ingredientShot,ingredientAperture,ingredientLens,ingredientBottleStage,lifestyleBeat}=await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 for(const scroll of [0,.01,.03])assert.equal(heroBeat(scroll).lift,0,'Idle must not detach the cap.');
 assert.equal(heroBeat(.12).lift,1,'Cap must complete its lift by 12% of one viewport.');
 assert.equal(heroBeat(.095).text,0,'Hero copy must clear the bottle before the dolly.');
@@ -40,10 +40,17 @@ for(let index=0;index<4;index++){
   assert(Math.abs(ingredientBeat(4+5.2*index/3,4,10.2).cursor-index)<.00001,'Each ingredient must have a distinct reachable scroll stop.');
   const shot=ingredientShot(index,index);assert.equal(shot.copy,1);assert.equal(shot.scale,1);
 }
-assert(ingredientShot(.65,0).scale>3,'Camera must push into a macro before the next ingredient is revealed.');
+for(let step=0;step<=300;step++)for(let index=0;index<4;index++)assert(ingredientShot(step/100,index).scale<=1.3,'Full-frame ingredient movement must stay restrained without a macro portal.');
 for(const [w,h] of [[390,844],[844,390],[1440,900]]){
   const lens=ingredientLens(w,h,.5),a=ingredientAperture(w,h,1,lens.x,lens.y);
   for(const [x,y] of [[0,0],[w,0],[0,h],[w,h]])assert(Math.hypot(x-a.x,y-a.y)<a.radius,'Open aperture must cover every viewport corner.');
   assert.equal(ingredientAperture(w,h,0,lens.x,lens.y).radius,0);
 }
 console.log('Cinematic requirements passed: exact beat boundaries, reverse traversal, all scent cap lifts, unchanged chapter anchors and static reduced motion.');
+for(let i=0;i<=100;i++){
+  const scroll=9.4+i/100*.9,ingredient=ingredientBeat(scroll,4,10.2),day=lifestyleBeat(scroll,10.2,14.4);
+  const coveredIngredient=ingredient.entry*Number(ingredient.exit<1);
+  assert(coveredIngredient===1||day.visibility===1,'Ingredient-to-day handoff must always have a complete opaque scene.');
+}
+assert.equal(lifestyleBeat(14.4,10.2,14.4).visibility,0,'Lifestyle must release the closing collection.');
+assert.equal(lifestyleBeat(11,10.2,14.4,true).visibility,1,'Reduced motion keeps a still daily scene.');

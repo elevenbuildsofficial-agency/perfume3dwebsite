@@ -125,7 +125,7 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       s.ingredientOriginY=portalBottle.y+(bottleRegistration[2].nozzle[1]-.5)*portalBottle.height;
       // The ingredient chapter completely covers the products. Keep pointer
       // smoothing alive, but avoid repainting hidden full-resolution canvases.
-      if((s.ingredientVisibility??0)>.999){frame=requestAnimationFrame(draw);return;}
+      if(s.worldCovered||(s.ingredientVisibility??0)>.999){frame=requestAnimationFrame(draw);return;}
       ctx.clearRect(0,0,width,height);shadow.clearRect(0,0,width,height);
       const scroll=s.scroll??0,beat=heroBeat(scroll,s.reduced),ground=groundFrame(width,height,s.pointerX,s.pointerY,s.stage,s.reduced);
       const render=(poses:Pose[],lifts:number[],exits:number[],focus:number,alpha:number,camera:boolean)=>{

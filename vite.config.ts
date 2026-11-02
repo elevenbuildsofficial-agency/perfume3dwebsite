@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { content } from './src/content';
 import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
+import { pageFromPath, pageMetadata } from './src/pageMetadata';
 
 const escape = (text: string) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 export default defineConfig({
@@ -21,20 +22,20 @@ export default defineConfig({
     name: 'content-metadata',
     transformIndexHtml(_html, context) {
       const { seo, offer } = content;
-      const about = context.path.startsWith('/about') || context.filename.replace(/\\/g, '/').includes('/about/');
-      const title = about ? content.about.seoTitle : seo.title;
-      const description = about ? content.about.seoDescription : seo.description;
-      const url = `${seo.siteUrl}${about ? '/about/' : ''}`;
+      const filename=context.filename.replace(/\\/g,'/');
+      const route=['/about/','/contact/','/find-your-morrow/'].find(path=>context.path.startsWith(path)||filename.includes(path))??'/';
+      const page=pageFromPath(route),metadata=pageMetadata[page],{title,description}=metadata;
+      const url=seo.siteUrl+metadata.path;
       return [
         { tag: 'title', children: title, injectTo: 'head' },
-        ...Object.entries({ description, 'og:title': title, 'og:description': description, 'og:type': about ? 'website' : 'product', 'og:site_name': content.brand, 'og:locale': seo.locale, 'og:image': `${seo.siteUrl}${seo.image}`, ...(seo.siteUrl ? { 'og:url': url } : {}), 'twitter:card': 'summary_large_image' }).map(([name, value]) => ({ tag: 'meta', attrs: { [name.startsWith('og:') ? 'property' : 'name']: name, content: escape(value) }, injectTo: 'head' as const })),
+        ...Object.entries({ description, 'og:title': title, 'og:description': description, 'og:type': page==='home'?'product':'website', 'og:site_name': content.brand, 'og:locale': seo.locale, 'og:image': `${seo.siteUrl}${seo.image}`, ...(seo.siteUrl ? { 'og:url': url } : {}), 'twitter:card': 'summary_large_image' }).map(([name, value]) => ({ tag: 'meta', attrs: { [name.startsWith('og:') ? 'property' : 'name']: name, content: escape(value) }, injectTo: 'head' as const })),
         ...(seo.siteUrl ? [{ tag: 'link', attrs: { rel: 'canonical', href: url }, injectTo: 'head' as const }] : []),
-        { tag: 'script', attrs: { type: 'application/ld+json' }, children: JSON.stringify({ '@context': 'https://schema.org', '@graph': content.products.map(product => ({ '@type': 'Product', name: `${content.brand} ${product.name}`, description: product.description, brand: { '@type': 'Brand', name: content.brand }, sku: product.sku, ...(seo.siteUrl ? { image: `${seo.siteUrl}${product.image}`, url: `${seo.siteUrl}/#chapter-${content.products.indexOf(product) + 1}` } : {}), offers: { '@type': 'Offer', price: product.price, priceCurrency: offer.currency, availability: 'https://schema.org/PreOrder' } })) }).replace(/</g, '\\u003c'), injectTo: 'head' },
+        { tag: 'script', attrs: { type: 'application/ld+json' }, children: JSON.stringify(page==='home'?{ '@context': 'https://schema.org', '@graph': content.products.map(product => ({ '@type': 'Product', name: `${content.brand} ${product.name}`, description: product.description, brand: { '@type': 'Brand', name: content.brand }, sku: product.sku, ...(seo.siteUrl ? { image: `${seo.siteUrl}${product.image}`, url: `${seo.siteUrl}/#chapter-${content.products.indexOf(product) + 1}` } : {}), offers: { '@type': 'Offer', price: product.price, priceCurrency: offer.currency, availability: 'https://schema.org/PreOrder' } })) }:{'@context':'https://schema.org','@type':metadata.type,name:title,description,url}).replace(/</g, '\\u003c'), injectTo: 'head' },
       ];
     },
   }],
   build: {
-    rollupOptions: { input: { main: fileURLToPath(new URL('./index.html', import.meta.url)), about: fileURLToPath(new URL('./about/index.html', import.meta.url)) }, output: { manualChunks(id) {
+    rollupOptions: { input: { main: fileURLToPath(new URL('./index.html', import.meta.url)), about: fileURLToPath(new URL('./about/index.html', import.meta.url)),contact:fileURLToPath(new URL('./contact/index.html',import.meta.url)),finder:fileURLToPath(new URL('./find-your-morrow/index.html',import.meta.url)) }, output: { manualChunks(id) {
       if (id.includes('/node_modules/react/') || id.includes('/node_modules/react-dom/') || id.includes('/node_modules/scheduler/')) return 'react-vendor';
       if (id.includes('/three/build/three.core.js')) return 'three-core';
       if (id.includes('/node_modules/three/')) return 'three-webgl';

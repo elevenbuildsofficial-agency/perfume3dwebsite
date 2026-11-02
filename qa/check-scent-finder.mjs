@@ -1,0 +1,15 @@
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+const source=await fs.readFile(new URL('../src/scentMatching.ts',import.meta.url),'utf8');
+const code=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const {matchScent}=await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+assert.equal(matchScent([null,null,null]),null);
+assert.equal(matchScent([0,1,null]),null);
+for(let i=0;i<3;i++)assert.equal(matchScent([i,i,i]),i,'A consistent preference must match its fragrance.');
+assert.equal(matchScent([0,1,2]),1,'Notes break a tied result.');
+assert.equal(matchScent([2,0,1]),0,'Notes break a tied result for First Light.');
+assert.equal(matchScent([0,1,0]),0,'Feeling and moment together can change the result.');
+assert.equal(matchScent([2,0,2]),2,'All three questions must be able to affect the recommendation.');
+for(let a=0;a<3;a++)for(let b=0;b<3;b++)for(let c=0;c<3;c++)assert([0,1,2].includes(matchScent([a,b,c])),'Every complete combination needs one valid scent.');
+console.log('Scent matching passed: incomplete choices, three scent profiles, preference ties and all 27 completed combinations.');

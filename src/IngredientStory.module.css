@@ -4,7 +4,7 @@
 .stage[inert] button{pointer-events:none}
 .daylight{position:absolute;inset:0;background:radial-gradient(ellipse at 82% 18%,#fffdf5af,transparent 52%),radial-gradient(ellipse at 4% 85%,#fffaf566,transparent 58%);pointer-events:none}
 .masthead{position:absolute;left:5.6%;right:5.6%;top:15%;display:flex;justify-content:space-between;font-size:11px;font-weight:500;letter-spacing:.02em;z-index:8;opacity:var(--interface-reveal,0)}
-.title{position:absolute;left:7%;top:23%;margin:0;font-size:clamp(54px,min(6.1vw,10svh),108px);line-height:.96;font-weight:500;letter-spacing:-.06em;z-index:8;pointer-events:none;clip-path:inset(0 0 calc((1 - var(--title-reveal,0))*100%) 0);transform:translateY(calc((1 - var(--title-reveal,0))*-26px))}
+.title{position:absolute;left:7%;top:23%;margin:0;font-size:clamp(54px,min(6.1vw,10svh),108px);line-height:.96;font-weight:500;letter-spacing:-.06em;z-index:8;pointer-events:none;opacity:var(--title-reveal,0);transform:translateY(calc((1 - var(--title-reveal,0))*-26px))}
 .card{position:absolute;inset:0;opacity:1;visibility:hidden;color:var(--ingredient-ink);background:var(--ingredient-paper);perspective:1100px;perspective-origin:72% 53%;overflow:clip}
 .specimens{position:absolute;inset:0;transform:translate3d(var(--travel-x,0px),var(--travel-y,0px),0) rotateX(var(--travel-pitch,0deg)) rotateY(var(--travel-yaw,0deg)) rotateZ(var(--travel-rotate,0deg)) scale(var(--travel-scale,1));transform-origin:72% 53%;transform-style:preserve-3d;will-change:transform;filter:blur(var(--focus-blur,0px))}
 .specimen{position:absolute;filter:drop-shadow(14px 24px 22px #54412422)}
@@ -19,7 +19,7 @@
 .tea-leaf .main{width:min(43vw,69svh);height:min(43vw,69svh);left:52%;top:18%;transform:rotate(32deg)}
 .tea-leaf .satellite1{transform:translate3d(var(--satellite-x,0px),var(--satellite-y,0px),0) rotate(114deg)}
 .fig-leaf .main{transform:rotate(-23deg)}
-.detail{position:absolute;left:7%;top:60%;width:33%;max-width:410px;transform:translate3d(0,var(--detail-y,0px),0);clip-path:inset(0 0 calc((1 - var(--copy-reveal,0))*100%) 0)}
+.detail{position:absolute;left:7%;top:60%;width:33%;max-width:410px;transform:translate3d(0,var(--detail-y,0px),0);opacity:var(--copy-reveal,0)}
 .noteNumber{font-size:11px;font-weight:500;letter-spacing:.035em;margin:0 0 13px;text-transform:uppercase}
 .detail h3{font-size:clamp(35px,3.7vw,60px);line-height:1.03;letter-spacing:-.045em;font-weight:550;margin:0 0 16px}
 .description{font-size:clamp(14px,1.15vw,18px);line-height:1.55;font-weight:450;margin:0;max-width:365px}

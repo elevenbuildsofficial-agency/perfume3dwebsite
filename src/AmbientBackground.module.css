@@ -9,7 +9,7 @@
 .daylight{position:absolute;inset:0;background:radial-gradient(ellipse at 28% 22%,#fffef170,transparent 65%);opacity:.6;animation:daylight 17s ease-in-out infinite alternate}
 @keyframes orchardDrift{from{transform:scale(1.025) translate3d(-.3%,-.3%,0)}to{transform:scale(1.065) translate3d(.6%,.4%,0)}}
 @keyframes leafBreeze{0%{transform:translate3d(-1%,0,0) rotate(-1.5deg)}40%{transform:translate3d(.2%,.5%,0) rotate(.1deg)}100%{transform:translate3d(1.2%,-.6%,0) rotate(1.4deg)}}
-@keyframes daylight{from{opacity:.35}to{opacity:.72}}
+@keyframes daylight{from{transform:translate3d(-2%,0,0) scale(1.03)}to{transform:translate3d(2%,1%,0) scale(1.08)}}
 .ambient[data-reduced="true"]{transform:none}
 .ambient[data-reduced="true"] *{animation:none!important;will-change:auto}
 .branchLeft,.branchRight{position:absolute;width:clamp(180px,28vw,520px);will-change:transform}
@@ -33,9 +33,9 @@
 @keyframes flapRight{from{transform:rotateY(-8deg)}to{transform:rotateY(-78deg)}}
 @keyframes branchLeft{from{transform:rotate(-2deg) translate3d(0,0,0)}to{transform:rotate(2.5deg) translate3d(6px,4px,0)}}
 @keyframes branchRight{from{transform:rotate(2deg) translate3d(0,0,0)}to{transform:rotate(-2deg) translate3d(-5px,3px,0)}}
-@keyframes flightOne{0%{transform:translate3d(-8vw,40vh,0) rotate(-18deg) scale(.8);opacity:0}5%{opacity:.9}20%{transform:translate3d(18vw,22vh,0) rotate(24deg) scale(.95)}40%{transform:translate3d(40vw,15vh,0) rotate(-16deg)}62%{transform:translate3d(64vw,30vh,0) rotate(32deg)}82%{transform:translate3d(87vw,19vh,0) rotate(-8deg);opacity:.9}100%{transform:translate3d(110vw,34vh,0) rotate(25deg) scale(.75);opacity:0}}
-@keyframes flightTwo{0%{transform:translate3d(110vw,62vh,0) rotate(160deg);opacity:0}8%{opacity:.8}25%{transform:translate3d(78vw,40vh,0) rotate(206deg)}47%{transform:translate3d(51vw,56vh,0) rotate(165deg) scale(.8)}70%{transform:translate3d(25vw,33vh,0) rotate(215deg)}92%{opacity:.8}100%{transform:translate3d(-9vw,17vh,0) rotate(178deg);opacity:0}}
-@keyframes flightThree{0%{transform:translate3d(-7vw,78vh,0) rotate(-25deg) scale(.7);opacity:0}7%{opacity:.7}23%{transform:translate3d(22vw,59vh,0) rotate(22deg)}45%{transform:translate3d(43vw,72vh,0) rotate(-22deg) scale(.9)}68%{transform:translate3d(68vw,52vh,0) rotate(27deg)}90%{opacity:.7}100%{transform:translate3d(110vw,66vh,0) rotate(-10deg) scale(.7);opacity:0}}
+@keyframes flightOne{0%{transform:translate3d(-8vw,40vh,0) rotate(-18deg) scale(.8);}20%{transform:translate3d(18vw,22vh,0) rotate(24deg) scale(.95)}40%{transform:translate3d(40vw,15vh,0) rotate(-16deg)}62%{transform:translate3d(64vw,30vh,0) rotate(32deg)}82%{transform:translate3d(87vw,19vh,0) rotate(-8deg);}100%{transform:translate3d(110vw,34vh,0) rotate(25deg) scale(.75);}}
+@keyframes flightTwo{0%{transform:translate3d(110vw,62vh,0) rotate(160deg);}25%{transform:translate3d(78vw,40vh,0) rotate(206deg)}47%{transform:translate3d(51vw,56vh,0) rotate(165deg) scale(.8)}70%{transform:translate3d(25vw,33vh,0) rotate(215deg)}100%{transform:translate3d(-9vw,17vh,0) rotate(178deg);}}
+@keyframes flightThree{0%{transform:translate3d(-7vw,78vh,0) rotate(-25deg) scale(.7);}23%{transform:translate3d(22vw,59vh,0) rotate(22deg)}45%{transform:translate3d(43vw,72vh,0) rotate(-22deg) scale(.9)}68%{transform:translate3d(68vw,52vh,0) rotate(27deg)}100%{transform:translate3d(110vw,66vh,0) rotate(-10deg) scale(.7);}}
 .ambient[data-reduced="true"] .butterflies{display:none}
 @media(prefers-reduced-motion:reduce){.ambient{transform:none}.environment,.shadows,.daylight,.branchLeft,.branchRight{animation:none;will-change:auto}.butterflies{display:none}}
 @media(max-width:1000px){.environment{background-image:var(--environment-mobile);background-position:37% center}.shadows{opacity:.04;filter:blur(3px)}.tint{background:color-mix(in srgb,var(--bg) 29%,transparent)}.branchLeft{width:210px;left:-18%;top:-5%}.branchRight{width:180px;right:-23%;top:-6%}.butterflyFlight{width:24px;height:24px}.flight1{width:19px;height:19px}.flight2{width:16px;height:16px}}

@@ -45,7 +45,7 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       const s=story.current,p=focusPose(width,height,index,s.mobile,s.reduced);
       return {...p,x:index===stage-1?p.x:(index<stage-1?-.35:1.35)*width,alpha:index===stage-1?1:0};
     };
-    const mixPose=(a:Pose,b:Pose,t:number):Pose=>({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t),height:lerp(a.height,b.height,t),angle:lerp(a.angle,b.angle,t),alpha:lerp(a.alpha,b.alpha,t)});
+    const mixPose=(a:Pose,b:Pose,t:number):Pose=>({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t),height:lerp(a.height,b.height,t),angle:lerp(a.angle,b.angle,t),alpha:t===0?a.alpha:t===1?b.alpha:1});
     const groundShadow=(p:Pose,index:number,lift:number,exit:number)=>{
       const base=p.y+silhouetteBounds(index,p.angle).bottom*p.height,foot=p.height*productGeometry[index].aspect*bottleRegistration[index].baseWidth;
       shadow.save();shadow.globalAlpha=p.alpha;
@@ -87,7 +87,7 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
         ctx.drawImage(sprite.body,-w/2,-h/2,w,h);
         if(!story.current.reduced&&exit<.999){
           const pivot=(r.capTop+r.capBottom)/2*h-h/2,capHeight=(r.capBottom-r.capTop)*h;
-          ctx.save();ctx.translate(lift*w*.055,pivot-lift*capHeight*1.2-exit*height*.9);ctx.rotate(lift*8*Math.PI/180);ctx.translate(0,-pivot);ctx.globalAlpha*=1-range(exit,.6,1);ctx.drawImage(sprite.cap,-w/2,-h/2,w,h);ctx.restore();
+          ctx.save();ctx.translate(lift*w*.055,pivot-lift*capHeight*1.2-exit*height*.9);ctx.rotate(lift*8*Math.PI/180);ctx.translate(0,-pivot);ctx.drawImage(sprite.cap,-w/2,-h/2,w,h);ctx.restore();
         }
       }
       ctx.filter='none';
@@ -138,19 +138,17 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       };
       if(outside>.00001){
         const arrival=s.reduced?0:1-range((s.dayProgress??0)*2,1.42,2);
-        const poses=collectionReturn(width,height,s.mobile,returning,arrival,s.reduced?0:s.pointerX).map(p=>({...p,alpha:p.alpha*outside}));
+        const poses=collectionReturn(width,height,s.mobile,returning,arrival,s.reduced?0:s.pointerX).map(p=>({...p,x:p.x+(s.reduced?0:(1-outside)*width*1.12)}));
         render(poses,[0,0,0],[0,0,0],0,1,false,returning);
       } else if(!s.reduced&&scroll<HERO_HANDOFF_END){
         const poses=[0,1,2].map(index=>{
           const p=mixPose({...heroLayout[index],alpha:1},pose(1,index),handoff.settle);
-          if(index!==0)p.alpha*=handoff.sides;
+          p.alpha=1;
+          if(index!==0)p.x=lerp(heroLayout[index].x,(index===1?-.65:1.65)*width,1-handoff.sides);
           return p;
         });
         const lift=scentLift(1,0,false),exit=range(lift,.85,1)*.58;
         render(poses,[lerp(beat.lift,lift,handoff.settle),0,0],[lerp(beat.exit,exit,handoff.settle),0,0],beat.focus,1,true);
-        // Haze recedes with the same camera; no white flash or hidden shot reset.
-        const fog=handoff.haze;
-        if(fog>.001){const g=ctx.createRadialGradient(width*.5,height*.48,0,width*.5,height*.48,Math.max(width,height)*.8);g.addColorStop(0,`rgba(255,245,218,${fog})`);g.addColorStop(.5,`rgba(248,237,210,${fog*.84})`);g.addColorStop(1,`rgba(241,233,212,${fog*.25})`);ctx.fillStyle=g;ctx.fillRect(0,0,width,height);}
       } else {
         const stage=!s.reduced&&scroll>=.30?Math.max(1,s.stage):s.stage;
         const from=Math.min(3,Math.floor(stage)),to=from+1,t=stage===s.stage?s.mix:0;

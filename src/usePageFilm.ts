@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
 import { clamp, lerp, range } from './cinematic';
+import { copyTravel, sceneArrival, sceneShot } from './spatialMotion';
 
 export function usePageFilm(count:number,paused:boolean) {
   const root=useRef<HTMLElement>(null),viewport=useRef<HTMLDivElement>(null),panels=useRef<(HTMLElement|null)[]>([]);
@@ -37,18 +38,17 @@ export function usePageFilm(count:number,paused:boolean) {
       stage.dataset.scene=cursor.toFixed(4);stage.style.setProperty('--film-progress',String(cursor/(count-1)));
       panels.current.forEach((panel,index)=>{
         if(!panel)return;
-        const reveal=reduce.current?Number(nearest===index):index===0?1:range(cursor,index-.58,index-.04);
-        const next=index===count-1?0:range(cursor,index+.42,index+.96);
-        const visible=reduce.current?nearest===index:reveal>0&&next<1;
-        panel.style.visibility=visible?'visible':'hidden';panel.style.opacity=String(reveal);
+        const shot=sceneShot(cursor,index,count-1,reduce.current),visible=shot.visible;
+        panel.style.visibility=visible?'visible':'hidden';panel.style.opacity='1';
+        panel.style.transform=sceneArrival(shot.entry,width,height,false,reduce.current);panel.dataset.motion='spatial';
         if(!visible){panel.inert=true;panel.setAttribute('aria-hidden','true');return;}
         const approach=reduce.current?0:index===0?0:1-range(cursor,index-.58,index);
         const departure=reduce.current?0:index===count-1?0:range(cursor,index+.12,index+.82);
-        const copy=(reduce.current?1:(index===0?1:range(cursor,index-.18,index-.02))*(1-(index===count-1?0:range(cursor,index+.14,index+.42))));
+        const text=copyTravel(cursor,index,count-1,width,height,reduce.current),copy=Number(text.settled);
         // Forms and choices become interactive once the camera has settled.
         // Focusing a half-revealed input must not interrupt its scroll arrival.
         panel.inert=nearest!==index||copy<.98;panel.setAttribute('aria-hidden',String(panel.inert));
-        panel.style.setProperty('--copy-reveal',String(copy));
+        panel.style.setProperty('--copy-x',`${text.x}px`);panel.style.setProperty('--copy-y',`${text.y}px`);
         panel.style.setProperty('--camera-scale',String(1+approach*.05+departure*.07));
         panel.style.setProperty('--camera-x',`${reduce.current?0:(approach*.012-departure*.015)*width+px*8}px`);
         panel.style.setProperty('--camera-y',`${reduce.current?0:(approach*.01-departure*.01)*height+py*5}px`);

@@ -18,8 +18,8 @@ export function collectionReturn(width:number,height:number,mobile:boolean,progr
   return final.map((target,index)=>{
     const t=range(progress,index===2?0:index===0?.12:.24,index===2?.80:index===0?.93:1);
     const h=height*(index===0?.65:.55),bounds=silhouetteBounds(index,0);
-    const start=index===2?green:{x:width*(index===0?.30:.18),y:height*.80-bounds.bottom*h,height:h,angle:index===0?.10:-.08};
-    const alpha=index===2?1:range(progress,index===0?.09:.23,index===0?.24:.39);
+    const start=index===2?green:{x:width*(index===0?1.55:-.65),y:height*.80-bounds.bottom*h,height:h,angle:index===0?.18:-.18};
+    const alpha=1;
     return {x:lerp(start.x,target.x,t),y:lerp(start.y,target.y,t)-Math.sin(t*Math.PI)*height*.025,height:lerp(start.height,target.height,t),angle:lerp(start.angle,target.angle,t),alpha};
   });
 }

@@ -2,10 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
 import type { StoryState } from './story';
 import { collectionLayout } from './collectionLayout';
+import { copyTravel } from './spatialMotion';
 
 type Pose = [number, number, number, number, number]; // centre x/y, viewport height, roll, opacity
 const desktop: Pose[][] = [
-  [[.73,.53,.76,12,1],[.12,.83,1.85,-24,1],[-.38,.55,.9,-42,0],[1.05,1.25,.9,28,0],[.50,.51,.46,-4,1]],
+  [[.73,.53,.76,12,1],[.12,.83,1.85,-24,1],[-.9,.55,.9,-42,0],[1.8,1.25,.9,28,0],[.50,.51,.46,-4,1]],
   [[1.2,.82,.35,-24,0],[1.25,.5,.6,-24,0],[1.22,.85,.65,26,0],[.70,.49,.65,-12,1],[.30,.56,.30,-10,1]],
   [[1.14,-.3,.42,-10,0],[1.25,.55,.7,15,0],[.66,.49,.72,8,1],[1.27,.86,.55,-28,0],[.70,.52,.37,8,1]],
 ];
@@ -67,17 +68,14 @@ export function useAboutMotion(paused:boolean) {
       node.style.setProperty('--nature',String(nature));node.style.setProperty('--material',String(material));node.style.setProperty('--memory',String(memory));
       node.style.setProperty('--story-ink',material>.53?'#f4eddd':'#29372d');
       node.style.setProperty('--drift',`${-scene*7+px*5}vw`);
-      node.style.setProperty('--portal-opacity',String(peak(scene,0,1.6)));
-      node.style.setProperty('--portal-transform',`translate3d(${lerp(0,-width*.34,clamp(scene))}px,0,0) scale(${1+clamp(scene)*1.8}) rotate(${-scene*6}deg)`);
-      node.style.setProperty('--branch-transform',`translate3d(${lerp(-38,0,nature)+px*2}vw,${lerp(15,-8,nature)}vh,0) rotate(${lerp(-45,-4,nature)}deg) scale(${lerp(1.4,1,nature)})`);
+      node.style.setProperty('--portal-transform',`translate3d(${lerp(0,-width*2.1,clamp(scene/1.6))}px,0,0) scale(${1+clamp(scene)*1.8}) rotate(${-scene*6}deg)`);
+      node.style.setProperty('--branch-transform',`translate3d(${lerp(-100,0,nature)+px*2}vw,${lerp(15,-8,nature)}vh,0) rotate(${lerp(-45,-4,nature)}deg) scale(${lerp(1.4,1,nature)})`);
       node.style.setProperty('--scan',`${lerp(-80,150,clamp((scene-2.3)/1.4))}%`);
       node.style.setProperty('--orbit-turn',`${scene*35}deg`);
-      node.style.setProperty('--nature-reveal',`${lerp(36,0,nature)}%`);
-      node.style.setProperty('--macro-crop',`${compact?peak(scene,1,.8)*44:0}%`);
       memories.forEach((card,index)=>{
         const theta=(scene-1)*.85+index*2.1,envelope=Math.sin(Math.PI*clamp(scene/4));
         const x=width*((compact?.5:.71)+Math.cos(theta)*(compact?.38:.16)),y=height*((compact?.34:.40)+Math.sin(theta)*(compact?.12:.15));
-        card.style.opacity=String(envelope*.88);card.style.transform=`translate3d(${x}px,${y}px,${Math.sin(theta)*45}px) translate(-50%,-50%) rotateY(${Math.sin(theta)*19}deg) rotateZ(${Math.cos(theta)*12}deg)`;
+        card.style.opacity='1';card.style.transform=`translate3d(${x+(1-envelope)*width*1.5}px,${y-(1-envelope)*height*.3}px,${Math.sin(theta)*45}px) translate(-50%,-50%) rotateY(${Math.sin(theta)*19}deg) rotateZ(${Math.cos(theta)*12}deg)`;
       });
       const poses=compact?mobile:desktop;
       bottles.current.forEach((image,index)=>{
@@ -87,12 +85,12 @@ export function useAboutMotion(paused:boolean) {
         const h=lerp(a[2]*scale,from===3?finale.height/height:b[2]*scale,t),rotation=lerp(a[3],from===3?finale.angle*180/Math.PI:b[3],t);
         const travel=Math.sin(t*Math.PI),orbit=travel*(index===1?-1:1)*(from===3?width*.12:width*.095),arc=travel*height*(from===3?-.04:index===1?.08:-.10);
         image.style.transform=`translate3d(${x+orbit+px*(index+1)*5*(1-memory)}px,${y+arc+py*7*(1-memory)}px,0) translate(-50%,-50%) perspective(1200px) rotateY(${travel*(index===1?-13:13)}deg) rotate(${rotation+travel*(index-1)*8+px*2*(1-memory)}deg) scale(${h*(1+travel*.06)})`;
-        image.style.opacity=String(lerp(a[4],b[4],t));
+        image.style.opacity='1';image.style.visibility=a[4]===0&&b[4]===0?'hidden':'visible';
       });
       const nearest=Math.round(scene);if(nearest!==selected){selected=nearest;setActive(nearest);}
       panels.current.forEach((panel,index)=>{
-        if(!panel)return;const distance=Math.abs(scene-index),opacity=1-smooth((distance-.12)/.39);
-        panel.style.opacity=String(opacity);panel.style.visibility=opacity<.001?'hidden':'visible';panel.style.transform=`translate3d(0,${(index-scene)*55}px,0)`;
+        if(!panel)return;const text=copyTravel(scene,index,4,width,height);
+        panel.style.opacity='1';panel.style.visibility=text.visible?'visible':'hidden';panel.style.transform=`translate3d(${text.x}px,${text.y}px,0)`;panel.dataset.motion='spatial';
         panel.inert=index!==nearest;panel.setAttribute('aria-hidden',String(index!==nearest));
       });
       frame=requestAnimationFrame(draw);

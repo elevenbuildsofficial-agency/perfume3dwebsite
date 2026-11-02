@@ -9,13 +9,15 @@ export function galleryShot(cursor:number,index:number,width:number,height:numbe
 export function ingredientSubject(cursor:number,index:number,reduced=false) {
   const anchors=[0,1.5,3],angle=(cursor-anchors[index])*.45;
   const rose=range(cursor,.42,.96),fig=range(cursor,2.42,2.96);
-  const alpha=reduced?Number([0,1,1,2][Math.round(cursor)]===index):index===0?1-rose:index===1?rose*(1-fig):fig;
-  return {alpha,x:reduced?0:Math.sin(angle)*.15,y:reduced?0:(1-Math.cos(angle))*.10,scale:reduced?1:1-Math.min(.18,Math.abs(angle)*.10),roll:reduced?0:-angle*20,yaw:reduced?0:angle*16};
+  const travel=index===0?-rose:index===1?1-rose-fig:1-fig;
+  const alpha=reduced?Number([0,1,1,2][Math.round(cursor)]===index):Number(Math.abs(travel)<1);
+  return {alpha,x:reduced?0:Math.sin(angle)*.15+travel*1.35,y:reduced?0:(1-Math.cos(angle))*.10-Math.sin(Math.PI*Math.abs(travel))*.10,scale:reduced?1:1-Math.min(.18,Math.abs(angle)*.10),roll:reduced?0:-angle*20+travel*12,yaw:reduced?0:angle*16};
 }
 
 export function scentTravel(a:CollectionPose&{alpha:number},b:CollectionPose&{alpha:number},t:number,width:number,height:number,reduced=false) {
   const arc=reduced?0:Math.sin(Math.PI*t),outgoing=a.alpha>b.alpha;
-  return {x:lerp(a.x,b.x,t)+arc*width*(outgoing?-.075:.075),y:lerp(a.y,b.y,t)-arc*height*(outgoing?.13:.075),height:lerp(a.height,b.height,t)*(1+arc*(outgoing?-.22:.10)),angle:lerp(a.angle,b.angle,t)+arc*(outgoing?-.20:.15),alpha:lerp(a.alpha,b.alpha,t)};
+  if(a.alpha===0&&b.alpha===0)return {...a};
+  return {x:lerp(a.x,b.x,t)+arc*width*(outgoing?-.075:.075),y:lerp(a.y,b.y,t)-arc*height*(outgoing?.13:.075),height:lerp(a.height,b.height,t)*(1+arc*(outgoing?-.22:.10)),angle:lerp(a.angle,b.angle,t)+arc*(outgoing?-.20:.15),alpha:t===0?a.alpha:t===1?b.alpha:1};
 }
 
 export function galleryBeat(scroll:number,start:number,end:number,reduced=false) {

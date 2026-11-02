@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { content, worlds } from './content';
 import { galleryBeat } from './referenceMotion';
+import { copyTravel } from './spatialMotion';
 import { heroBeat, heroHandoff, range, ingredientBeat, ingredientLens, ingredientBottleStage, lifestyleBeat } from './cinematic';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -119,7 +120,7 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       const ink = `rgb(${ir} ${ig} ${ib})`;
       if (ink !== lastInk) { root.style.setProperty('--ink', ink); lastInk = ink; }
       root.style.setProperty('--progress', String(Math.min(1,s.scroll/lastChapter)));
-      root.style.setProperty('--bottle-visibility',(s.dayOutside??0)>.00001?'1':s.worldCovered?'0':'1');
+      root.style.setProperty('--bottle-visibility',(s.dayOutside??0)>.00001?'visible':s.worldCovered?'hidden':'visible');
       root.style.setProperty('--scene-layer',(s.dayOutside??0)>.00001?'8':'2');
       root.style.setProperty('--ingredient-camera',ingredientLens(innerWidth,innerHeight,ingredients.camera,s.ingredientOriginX,s.ingredientOriginY).transform);
       root.style.setProperty('--product-x', `${s.mobile ? 0 : s.x * 11}vw`);
@@ -128,22 +129,21 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       if (navigationStep !== currentActive) { currentActive = navigationStep; setActive(navigationStep); }
       panels.current.forEach((panel, index) => {
         if (!panel) return;
-        const distance = Math.abs(s.stage - index);
-        let opacity = 1 - smooth(Math.max(0, Math.min(1, (distance - 0.12) / 0.58)));
-        if (!s.reduced && (s.scroll??0)<.76) opacity=index===0?beat.text:index===1?heroHandoff(s.scroll??0).copy:0;
-        if (!s.reduced && index>1 && index<4) opacity*=range(s.stage,index-.36,index-.08);
-        if(index===3)opacity*=1-range(ingredients.entry,.04,.28);
+        const text=copyTravel(s.stage,index,4,innerWidth,innerHeight,s.reduced);
+        let visible=text.visible,x=text.x,y=text.y;
+        if(index===0){visible=s.reduced?nearest===0:beat.text>0;x=s.reduced?0:-(1-beat.text)*innerWidth*1.12;y=0;}
+        if(!s.reduced&&index===1&&(s.scroll??0)<.76){const arrival=heroHandoff(s.scroll??0).copy;visible=arrival>0;x=(1-arrival)*innerWidth*1.12;y=(1-arrival)*innerHeight*.06;}
+        if(index===3)x-=ingredients.entry*innerWidth*1.12;
         const finalExit=hasDay?day.exit:ingredients.exit;
-        if(index===4)opacity*=s.reduced?finalExit:range(finalExit,.68,1);
-        panel.style.opacity = String(opacity);
-        panel.style.visibility = opacity < 0.001 ? 'hidden' : 'visible';
-        panel.style.transform = `translate3d(0,${index===0&&!s.reduced?-(1-beat.text)*75:(index-s.stage)*28}px,0)`;
+        if(index===4){const arrival=s.reduced?finalExit:range(finalExit,.30,1);visible=arrival>0;x=0;y=(1-arrival)*innerHeight;}
+        panel.style.opacity='1';panel.style.visibility=visible?'visible':'hidden';
+        panel.style.transform=`translate3d(${x}px,${y}px,0)`;panel.dataset.motion='spatial';
         panel.inert = index !== nearest||(s.ingredientVisibility??0)>.01||(s.dayVisibility??0)>.01||(s.galleryVisibility??0)>.01;
         panel.setAttribute('aria-hidden', String(index !== nearest||(s.ingredientVisibility??0)>.5||(s.dayVisibility??0)>.5||(s.galleryVisibility??0)>.5));
       });
       if (wordmark.current) {
-        wordmark.current.style.opacity = String(s.reduced?Math.max(0,1-s.stage*1.7):beat.text);
-        wordmark.current.style.transform=s.mobile?'none':`translate3d(0,${s.reduced?0:-(1-beat.text)*120}px,0)`;
+        wordmark.current.style.opacity='1';wordmark.current.style.visibility=(s.reduced?nearest===0:beat.text>0)?'visible':'hidden';
+        wordmark.current.style.transform=`translate3d(${s.reduced?0:-(1-beat.text)*innerWidth*1.12}px,${s.mobile||s.reduced?0:-(1-beat.text)*120}px,0)`;
       }
       frame = requestAnimationFrame(animate);
     };

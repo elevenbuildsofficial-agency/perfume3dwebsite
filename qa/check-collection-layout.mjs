@@ -7,7 +7,17 @@ const compile=async name=>ts.transpileModule(await fs.readFile(new URL(`../src/$
 const moduleUrl=text=>`data:text/javascript;base64,${Buffer.from(text).toString('base64')}`;
 const contentUrl=moduleUrl(await compile('content')),geometryUrl=moduleUrl(await compile('productGeometry')),cinematicUrl=moduleUrl(await compile('cinematic'));
 const layoutCode=(await compile('collectionLayout')).replace("'./content'",JSON.stringify(contentUrl)).replace("'./productGeometry'",JSON.stringify(geometryUrl)).replace("'./cinematic'",JSON.stringify(cinematicUrl));
-const {collectionLayout}=await import(moduleUrl(layoutCode));
+const layoutUrl=moduleUrl(layoutCode),{collectionLayout}=await import(layoutUrl);
+const returnCode=(await compile('collectionReturn')).replace("'./collectionLayout'",JSON.stringify(layoutUrl)).replace("'./cinematic'",JSON.stringify(cinematicUrl));
+const {collectionReturn,outsideBottlePose}=await import(moduleUrl(returnCode));
+for(const [w,h] of [[390,844],[540,720],[1440,900]]){
+  const mobile=w<=1000,start=collectionReturn(w,h,mobile,0),green=outsideBottlePose(w,h,mobile),end=collectionReturn(w,h,mobile,1),final=collectionLayout(w,h,'final',mobile);
+  for(const key of ['x','y','height','angle'])assert(Math.abs(start[2][key]-green[key])<1e-8,'Green must start at its exact photographed stone position.');
+  for(let index=0;index<3;index++)for(const key of ['x','y','height','angle'])assert(Math.abs(end[index][key]-final[index][key])<1e-8,'Every returning bottle must land in its exact collection slot.');
+  const forward=Array.from({length:101},(_,i)=>collectionReturn(w,h,mobile,i/100));
+  for(let i=100;i>=0;i--){assert.deepEqual(collectionReturn(w,h,mobile,i/100),forward[i]);assert.equal(forward[i][2].alpha,1,'Green must stay present throughout the return, without a dissolve swap.');}
+  for(let index=0;index<3;index++)assert(start[index].height>end[index].height,'Each bottle must recede in depth toward the final row.');
+}
 const large=await Promise.all(['01','02','03'].map(async n=>loadImage(await fs.readFile(new URL(`../public/images/morrow-${n}.webp`,import.meta.url)))));
 const small=await Promise.all(['01','02','03'].map(async n=>loadImage(await fs.readFile(new URL(`../public/images/morrow-${n}-small.webp`,import.meta.url)))));
 const layered=await Promise.all(['first-light','velvet-hour','wild-ground'].map(async (id,i)=>{

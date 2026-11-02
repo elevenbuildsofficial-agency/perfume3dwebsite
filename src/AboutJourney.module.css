@@ -31,14 +31,14 @@
 .copy{position:absolute;left:7%;top:29%;width:45%;max-width:700px}
 .eyebrow{display:flex;align-items:center;gap:18px;font-size:11px;letter-spacing:.01em;margin:0 0 30px}
 .eyebrow>span{font-size:9px;padding:7px 0;border-bottom:1px solid currentColor}
-.copy h1,.copy h2{font-size:clamp(68px,min(8.7vw,15svh),150px);font-weight:300;line-height:.92;letter-spacing:-.068em;margin:0 0 30px}
+.copy h1,.copy h2{font-size:clamp(68px,min(8.7vw,15svh),150px);font-weight:550;line-height:.92;letter-spacing:-.068em;margin:0 0 30px}
 .copy h1>span,.copy h2>span{display:block}
-.description{font-size:clamp(15px,1.35vw,20px);line-height:1.55;letter-spacing:-.015em;max-width:360px;margin:0}
+.description{font-size:clamp(15px,1.35vw,20px);line-height:1.55;font-weight:500;letter-spacing:-.015em;max-width:360px;margin:0}
 .openingNote{position:absolute;left:7%;right:7%;bottom:17%;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;font-size:11px}
 .openingNote>span{max-width:230px;line-height:1.6}.openingNote button{display:flex;align-items:center;gap:22px;border:0;border-bottom:1px solid #29372d65;background:none;padding:12px 0;font-size:12px}.openingNote svg{width:22px;height:22px;transform:rotate(90deg)}
 .scene1 .copy{left:48%;top:26%;width:45%;max-width:650px}.scene1 .copy h2{font-size:clamp(66px,min(7.4vw,12svh),110px)}
 .scene1 .description{max-width:375px}
-.poem{position:absolute;left:49%;top:66%;display:flex;flex-direction:column;gap:5px;font-size:clamp(18px,2.1vw,34px);font-weight:300;letter-spacing:-.035em;line-height:1.2}
+.poem{position:absolute;left:49%;top:66%;display:flex;flex-direction:column;gap:5px;font-size:clamp(18px,2.1vw,34px);font-weight:500;letter-spacing:-.035em;line-height:1.2}
 .poem>span{opacity:clamp(.75,calc((var(--scene) - .65)*3 - var(--line)*.18),1)}
 .scene2 .copy{left:7%;top:43%;width:49%}.scene2 .copy h2{font-size:clamp(65px,min(7.3vw,12svh),125px)}
 .scene2 .description{max-width:390px}

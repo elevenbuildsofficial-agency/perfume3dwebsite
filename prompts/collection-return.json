@@ -1,0 +1,13 @@
+{
+  "mode": "built-in image_gen",
+  "purpose": "Clean photographic plates for the independent green-bottle return animation",
+  "prompt": "Use case: precise-object-edit. Edit target: the provided existing Morrow garden lifestyle photograph. Create a clean background plate for a cinematic website animation. Remove ONLY the green perfume bottle, its wooden cap, contact shadow, cast shadow and glass caustic/reflection. Reconstruct the naturally textured stone ledge and garden behind where the bottle stood. Preserve the entire original camera framing, aspect ratio, all foliage, sky, tote bag, book, figs, fig leaf, limestone ledge shape, sunlight direction, realistic photographic colour grade and depth of field. No bottles or product objects may remain. Do not crop, reframe or add anything. Full-resolution realistic photographic clean plate, no text.",
+  "sources": [
+    "assets/source/day-outside.png",
+    "assets/source/day-outside-portrait.png"
+  ],
+  "outputs": [
+    "assets/source/day-outside-clean.png",
+    "assets/source/day-outside-clean-portrait.png"
+  ]
+}

@@ -7,8 +7,8 @@
 .reading{position:absolute;inset:0;background:linear-gradient(90deg,#f5efdfed,#f5efdfb3 35%,#f5efdf08 72%),linear-gradient(0deg,#f1eadba8,transparent 35%)}
 .copy{position:absolute;left:7%;top:25%;width:43%;max-width:620px;opacity:var(--copy-reveal,1);transform:translateY(calc((1 - var(--copy-reveal,1))*-24px));z-index:2}
 .eyebrow{font-size:12px;font-weight:500;letter-spacing:.055em;text-transform:uppercase;margin:0 0 22px}
-.copy h1,.copy h2{font-size:clamp(56px,min(6.7vw,11svh),112px);line-height:.96;font-weight:550;letter-spacing:-.06em;margin:0 0 24px}
-.body{font-size:clamp(15px,1.35vw,20px);line-height:1.55;font-weight:450;max-width:420px;margin:0 0 25px}
+.copy h1,.copy h2{font-size:clamp(56px,min(6.7vw,11svh),112px);line-height:.96;font-weight:600;letter-spacing:-.06em;margin:0 0 24px}
+.body{font-size:clamp(15px,1.35vw,20px);line-height:1.55;font-weight:500;max-width:420px;margin:0 0 25px}
 .primary{display:flex;align-items:center;justify-content:space-between;gap:32px;min-height:48px;max-width:330px;width:100%;padding:16px 22px;border:1px solid #29372d;border-radius:40px;background:#29372d;color:#f2eedf;font:inherit;font-size:14px;font-weight:500;text-align:left}
 .primary:hover{background:#415646}.primary>span{white-space:nowrap}
 .cornerNote{position:absolute;left:7%;right:7%;bottom:11%;display:flex;justify-content:space-between;font-size:12px}

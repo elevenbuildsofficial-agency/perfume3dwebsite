@@ -38,7 +38,7 @@ for(const page of ['contact','find-your-morrow']){
   const output=await fs.readFile(new URL(`../dist/${page}/index.html`,import.meta.url),'utf8');
   if(!output.includes(`${content.seo.siteUrl}/${page}/`)||!output.includes('application/ld+json')){console.error(`Missing route metadata: ${page}`);failures++;}
 }
-for(const id of ['morning','evening','outside'])for(const suffix of ['','-mobile']){
+for(const id of ['morning','evening','outside','outside-clean'])for(const suffix of ['','-mobile']){
   try{await fs.access(new URL(`../dist/images/day-${id}${suffix}.webp`,import.meta.url));}
   catch{console.error(`Missing lifestyle image: ${id}${suffix}`);failures++;}
 }

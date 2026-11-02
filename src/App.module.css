@@ -21,8 +21,8 @@
 .headerCta{border:1px solid color-mix(in srgb,var(--ink) 60%,transparent);background:transparent;border-radius:40px;padding:13px 19px;display:flex;align-items:center;gap:23px;font-size:14px;transition:background .2s,color .2s}
 .headerCta:hover{background:var(--ink);color:var(--bg)}
 .smallDot{display:inline-block;width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:currentColor}
-.wordmark{position:fixed;z-index:1;top:25.5svh;left:0;width:100%;text-align:center;font-size:26.4vw;line-height:.9;letter-spacing:-.078em;font-weight:550;color:#173426;text-shadow:0 1px 0 #fff3,0 0 22px #f6efdc45;padding-right:.065em;pointer-events:none;will-change:opacity}
-.scene{position:fixed;z-index:2;inset:0;pointer-events:none;opacity:var(--bottle-visibility,1);transform:var(--ingredient-camera,none);transform-origin:0 0}
+.wordmark{position:fixed;z-index:1;top:25.5svh;left:0;width:100%;text-align:center;font-size:26.4vw;line-height:.9;letter-spacing:-.078em;font-weight:600;color:#173426;text-shadow:0 1px 0 #fff3,0 0 22px #f6efdc45;padding-right:.065em;pointer-events:none;will-change:opacity}
+.scene{position:fixed;z-index:var(--scene-layer,2);inset:0;pointer-events:none;opacity:var(--bottle-visibility,1);transform:var(--ingredient-camera,none);transform-origin:0 0}
 .section{height:100svh;min-height:620px}
 .panel{position:fixed;inset:0;z-index:3;will-change:transform,opacity;pointer-events:none}
 .panel button,.panel a{pointer-events:auto}
@@ -33,7 +33,7 @@
 .editionSeal svg{width:34px;height:34px;margin-bottom:4px}
 .editionSeal span{font-size:9px}
 .heroLeft{position:absolute;left:5.6%;bottom:14.4%;width:32%}
-.heroLeft h2,.finalLeft h2{font-size:clamp(40px,4.7vw,88px);font-weight:550;line-height:1.01;letter-spacing:-.052em;margin:0}
+.heroLeft h2,.finalLeft h2{font-size:clamp(40px,4.7vw,88px);font-weight:600;line-height:1.01;letter-spacing:-.052em;margin:0}
 .heroLeft h2 span,.heroDescription span,.finalLeft h2 span,.finalLeft p span,.dialog h2 span{display:block}
 .heroLeft p{font-size:12px;font-weight:500;margin:23px 0 0}
 .heroRight{position:absolute;right:5.6%;bottom:14.2%;width:242px}
@@ -67,7 +67,7 @@
 .chapterEyebrow{display:flex;align-items:center;gap:15px;font-size:13px;font-weight:500;margin:0 0 18px;position:relative}
 .chapterEyebrow>span:first-child{border:1px solid color-mix(in srgb,var(--ink) 45%,transparent);width:28px;height:28px;display:grid;place-items:center;border-radius:50%;font-size:11px}
 .botanical{position:absolute;right:4%;bottom:-34px;width:92px;height:92px;transform:rotate(-12deg);opacity:.72}
-.chapterCopy h2{font-size:clamp(74px,8.7vw,148px);font-weight:550;line-height:.92;letter-spacing:-.055em;margin:0 0 25px}
+.chapterCopy h2{font-size:clamp(74px,8.7vw,148px);font-weight:600;line-height:.92;letter-spacing:-.055em;margin:0 0 25px}
 .chapterCopy h2 span{display:block}
 .chapterDescription{font-size:clamp(15px,1.25vw,20px);font-weight:500;line-height:1.55;max-width:365px;letter-spacing:-.01em;margin:0 0 23px}
 .ingredients{list-style:none;padding:0;margin:0;border-top:1px solid color-mix(in srgb,var(--ink) 40%,transparent);max-width:365px}
@@ -89,7 +89,7 @@
 .finalProduct{font-size:26px!important;letter-spacing:-1px;display:flex;justify-content:space-between;align-items:baseline;margin:0 0 16px!important}
 .finalProduct span{font-size:16px;letter-spacing:-.5px}
 .finalRight>p{font-size:13px;line-height:1.5;margin:0}
-.finalPrice{font-size:38px;font-weight:300;letter-spacing:-1.5px;display:flex;align-items:baseline;justify-content:space-between;margin:20px 0}
+.finalPrice{font-size:38px;font-weight:500;letter-spacing:-1.5px;display:flex;align-items:baseline;justify-content:space-between;margin:20px 0}
 .finalPrice span{font-size:11px;letter-spacing:0}
 .finalFootnote{font-size:10px!important;text-align:center;margin-top:14px!important}
 .footer{position:absolute;bottom:5%;left:5%;right:5%;display:flex;align-items:center;justify-content:space-between;font-size:10px}
@@ -103,7 +103,7 @@
 .dialogMark svg{width:42px;height:42px}
 .dialogEdition{display:flex;align-items:center;gap:18px;font-size:12px;margin-top:26px}
 .dialogEdition span{font-size:11px}
-.dialog h2{font-size:46px;font-weight:300;letter-spacing:-2.2px;line-height:1.03;margin:18px 0}
+.dialog h2{font-size:46px;font-weight:500;letter-spacing:-2.2px;line-height:1.03;margin:18px 0}
 .dialog>p{font-size:14px;line-height:1.6}
 .dialog form{margin-top:26px}
 .dialog form label{display:block;font-size:12px;margin-bottom:8px}

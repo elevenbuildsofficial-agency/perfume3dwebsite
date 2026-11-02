@@ -6,7 +6,7 @@ import { content, worlds } from './content';
 import { heroBeat, heroHandoff, range, ingredientBeat, ingredientLens, ingredientBottleStage, lifestyleBeat } from './cinematic';
 
 gsap.registerPlugin(ScrollTrigger);
-export type StoryState = { target: number; stage: number; mix: number; from: number; to: number; x: number; slosh: number; mobile: boolean; reduced: boolean; paused: boolean; pointerX: number; pointerY: number; scroll?: number; ingredientProgress?: number; ingredientVisibility?: number; ingredientEntry?:number; ingredientExit?:number; ingredientOriginX?:number; ingredientOriginY?:number; hasDay?:boolean; dayProgress?:number; dayVisibility?:number; dayEntry?:number; dayExit?:number; worldCovered?:boolean };
+export type StoryState = { target: number; stage: number; mix: number; from: number; to: number; x: number; slosh: number; mobile: boolean; reduced: boolean; paused: boolean; pointerX: number; pointerY: number; scroll?: number; ingredientProgress?: number; ingredientVisibility?: number; ingredientEntry?:number; ingredientExit?:number; ingredientOriginX?:number; ingredientOriginY?:number; hasDay?:boolean; dayProgress?:number; dayVisibility?:number; dayEntry?:number; dayExit?:number; dayReturn?:number; dayOutside?:number; worldCovered?:boolean };
 const rgb = (hex: string) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
 const palettes = worlds.map(world => ({ bg: rgb(world.bg), ink: rgb(world.ink), a: rgb(world.a), b: rgb(world.b) }));
 const lightInk = rgb('#FFFFFF');
@@ -84,6 +84,8 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       const ingredients=ingredientBeat(s.scroll,ingredientStart,ingredientEnd,s.reduced);
       const day=lifestyleBeat(s.scroll,dayStart,lastChapter,s.reduced);
       s.hasDay=hasDay;s.dayProgress=day.progress;s.dayEntry=day.entry;s.dayExit=day.exit;s.dayVisibility=hasDay?day.visibility:0;
+      s.dayReturn=hasDay?day.returning:0;
+      s.dayOutside=hasDay?day.entry*(s.reduced?Number(Math.round(day.progress*2)===2):range(day.progress*2,1.42,1.96)):0;
       s.ingredientProgress=ingredients.progress;s.ingredientVisibility=hasDay?ingredients.entry*Number(ingredients.exit<1):ingredients.visibility;
       s.ingredientEntry=ingredients.entry;s.ingredientExit=ingredients.exit;
       s.worldCovered=(s.ingredientVisibility??0)>=.99999||(s.dayVisibility??0)>=.99999;
@@ -116,7 +118,8 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       const ink = `rgb(${ir} ${ig} ${ib})`;
       if (ink !== lastInk) { root.style.setProperty('--ink', ink); lastInk = ink; }
       root.style.setProperty('--progress', String(Math.min(1,s.scroll/lastChapter)));
-      root.style.setProperty('--bottle-visibility',s.worldCovered?'0':'1');
+      root.style.setProperty('--bottle-visibility',(s.dayOutside??0)>.00001?'1':s.worldCovered?'0':'1');
+      root.style.setProperty('--scene-layer',(s.dayOutside??0)>.00001?'8':'2');
       root.style.setProperty('--ingredient-camera',ingredientLens(innerWidth,innerHeight,ingredients.camera,s.ingredientOriginX,s.ingredientOriginY).transform);
       root.style.setProperty('--product-x', `${s.mobile ? 0 : s.x * 11}vw`);
       const nearest = Math.round(s.stage);
@@ -149,7 +152,7 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       motion.removeEventListener('change', initializeMotion); mobile.removeEventListener('change', resize);
       removeEventListener('resize',resize);
       removeEventListener('ingredientnavigate',ingredientNavigate);
-      ['--bg', '--ink', '--progress', '--product-x', '--liquid-a', '--liquid-b','--bottle-visibility','--ingredient-camera'].forEach(key => root.style.removeProperty(key));
+      ['--bg', '--ink', '--progress', '--product-x', '--liquid-a', '--liquid-b','--bottle-visibility','--ingredient-camera','--scene-layer'].forEach(key => root.style.removeProperty(key));
     };
   }, [panels, wordmark]);
 

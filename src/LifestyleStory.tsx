@@ -16,12 +16,12 @@ export default function LifestyleStory({story,onFind,onContinue}:{story:MutableR
     let frame=0,w=node.clientWidth,h=node.clientHeight,last=-1;
     const resize=()=>{w=node.clientWidth;h=node.clientHeight;};
     const draw=()=>{
-      const s=story.current,v=s.dayVisibility??0,cursor=(s.dayProgress??0)*2,entry=s.dayEntry??0,exit=s.dayExit??0;
+      const s=story.current,v=s.dayVisibility??0,cursor=(s.dayProgress??0)*2,entry=s.dayEntry??0,returning=s.dayReturn??0;
       if(s.paused||document.hidden){frame=requestAnimationFrame(draw);return;}
-      node.style.opacity=String(v);node.style.visibility=v>.00001?'visible':'hidden';node.inert=v<.98||exit>.01;node.setAttribute('aria-hidden',String(node.inert));
+      node.style.opacity=String(v);node.style.visibility=v>.00001?'visible':'hidden';node.inert=v<.98||returning>.001;node.setAttribute('aria-hidden',String(node.inert));
       if(v>.00001){
         // Every shot stays full-frame; scroll blends complete photographic scenes.
-        const ui=s.reduced?1:range(entry,.85,1)*(1-range(exit,0,.24));
+        const ui=s.reduced?1:range(entry,.85,1)*(1-range(returning,0,.16));
         node.style.setProperty('--day-ui',String(ui));node.dataset.scene=cursor.toFixed(4);node.dataset.active=dayMoments[Math.round(cursor)].id;
         if(last!==Math.round(cursor)){last=Math.round(cursor);node.querySelectorAll('[data-moment]').forEach((button,i)=>{if(i===last)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');});}
         panels.current.forEach((panel,i)=>{
@@ -32,7 +32,7 @@ export default function LifestyleStory({story,onFind,onContinue}:{story:MutableR
           panel.inert=Math.round(cursor)!==i;panel.setAttribute('aria-hidden',String(Math.round(cursor)!==i));
           if(!visible)return;
           const arrival=s.reduced?0:i===0?0:1-range(cursor,i-.58,i),departure=s.reduced?0:i===2?0:range(cursor,i+.16,i+.82);
-          panel.style.setProperty('--day-scale',String(1+arrival*.045+departure*.065+(s.reduced?0:exit*.035)));
+          panel.style.setProperty('--day-scale',String(1+arrival*.045+departure*.065));
           panel.style.setProperty('--day-x',`${s.reduced?0:(arrival*.012-departure*.015)*w+s.pointerX*7}px`);
           panel.style.setProperty('--day-y',`${s.reduced?0:(arrival*.01-departure*.01)*h}px`);
           const text=ui*(s.reduced?1:(i===0?1:range(cursor,i-.17,i-.02))*(1-(i===2?0:range(cursor,i+.15,i+.41))));
@@ -43,9 +43,9 @@ export default function LifestyleStory({story,onFind,onContinue}:{story:MutableR
     };
     addEventListener('resize',resize);frame=requestAnimationFrame(draw);return()=>{cancelAnimationFrame(frame);removeEventListener('resize',resize);};
   },[story]);
-  const goToMoment=(i:number)=>{const section=document.getElementById('day');if(!section)return;section.dispatchEvent(new CustomEvent('ingredientnavigate',{bubbles:true,detail:section.offsetTop+(section.offsetHeight-innerHeight)*i/2}));};
+  const goToMoment=(i:number)=>{const section=document.getElementById('day');if(!section)return;section.dispatchEvent(new CustomEvent('ingredientnavigate',{bubbles:true,detail:section.offsetTop+(section.offsetHeight-innerHeight*1.8)*i/2}));};
   return <section id="day" className={styles.scrollSpace} aria-label="Make it part of your day"><div ref={root} className={styles.stage} inert aria-hidden="true">
-    {dayMoments.map((moment,i)=><article ref={el=>{panels.current[i]=el;}} className={`${styles.panel} ${i===1?styles.evening:''}`} key={moment.id} style={{'--day-ink':moment.ink,'--day-desktop':`url(/images/day-${moment.id}.webp)`,'--day-mobile':`url(/images/day-${moment.id}-mobile.webp)`,zIndex:i+1} as CSSProperties} aria-label={moment.time} inert aria-hidden="true">
+    {dayMoments.map((moment,i)=><article ref={el=>{panels.current[i]=el;}} className={`${styles.panel} ${i===1?styles.evening:''}`} key={moment.id} style={{'--day-ink':moment.ink,'--day-desktop':`url(/images/day-${moment.id}${i===2?'-clean':''}.webp)`,'--day-mobile':`url(/images/day-${moment.id}${i===2?'-clean':''}-mobile.webp)`,zIndex:i+1} as CSSProperties} aria-label={moment.time} inert aria-hidden="true">
       <div className={styles.photo} role="img" aria-label={moment.imageAlt}/><div className={styles.reading}/>
       <div className={styles.headline}><p>Small rituals / Everyday Morrow</p><h2>Make it part<br/>of your day.</h2></div>
       <div className={styles.detail}><p className={styles.eyebrow}>0{i+1} / {moment.time}</p><h3>{moment.title}</h3><p>{moment.body}</p></div>

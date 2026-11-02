@@ -86,10 +86,11 @@ export function ingredientBottleStage(scroll:number,first:number,start:number,en
 }
 
 export function lifestyleBeat(scroll:number,start:number,end:number,reduced=false) {
-  const progress=clamp((scroll-start)/Math.max(.1,end-start-1));
+  const progress=clamp((scroll-start)/Math.max(.1,end-start-1.8));
   const entry=reduced?Number(scroll>=start):range(scroll,start-.65,start-.10);
-  const exit=reduced?Number(scroll>=end-.35):range(scroll,end-.65,end-.10);
-  return {progress,entry,exit,visibility:entry*(1-exit)};
+  const returning=reduced?Number(scroll>=end-.35):range(scroll,end-1.2,end-.10);
+  const exit=reduced?returning:range(returning,.26,.98);
+  return {progress,entry,exit,returning,visibility:entry*(1-exit)};
 }
 
 export function groundFrame(width: number, height: number, pointerX: number, pointerY: number, stage: number, reduced: boolean) {

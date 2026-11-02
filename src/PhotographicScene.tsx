@@ -7,6 +7,7 @@ import { bottleRegistration, bottleAssets } from './bottleAssets';
 import { loadBottleSprites, type BottleSprites } from './bottleSprites';
 import { clamp, groundFrame, heroBeat, heroHandoff, HERO_HANDOFF_END, lerp, neckCamera, range, scentLift } from './cinematic';
 import styles from './PhotographicScene.module.css';
+import { collectionReturn } from './collectionReturn';
 
 type StoryRef = MutableRefObject<StoryState>;
 type Pose = CollectionPose & { alpha: number };
@@ -25,7 +26,7 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
     const node=canvas.current,shadowNode=shadowCanvas.current;
     const ctx=node?.getContext('2d'),shadow=shadowNode?.getContext('2d');
     if(!node||!shadowNode||!ctx||!shadow)return;
-    let width=innerWidth,height=innerHeight,frame=0,live=true,previous=0,dirty=true,lastStage=-1;
+    let width=innerWidth,height=innerHeight,frame=0,live=true,previous=0,dirty=true,lastStage=-1,lastOutside=-1,lastReturn=-1;
     const sprites:(BottleSprites|null)[]=[null,null,null];
     let heroLayout=collectionLayout(width,height,'hero'),finalLayout=collectionLayout(width,height,'final');
     let px=0,py=0,tx=0,ty=0;
@@ -115,25 +116,30 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
     const draw=(time:number)=>{
       const s=story.current,dt=Math.min(.05,(time-previous)/1000||.016);previous=time;
       if(s.paused||document.hidden){frame=requestAnimationFrame(draw);return;}
-      if(s.reduced&&!dirty&&s.stage===lastStage){frame=requestAnimationFrame(draw);return;}
-      dirty=false;lastStage=s.stage;
+      if(s.reduced&&!dirty&&s.stage===lastStage&&(s.dayOutside??0)===lastOutside&&(s.dayReturn??0)===lastReturn){frame=requestAnimationFrame(draw);return;}
+      dirty=false;lastStage=s.stage;lastOutside=s.dayOutside??0;lastReturn=s.dayReturn??0;
       px=lerp(px,tx,1-Math.exp(-5*dt));py=lerp(py,ty,1-Math.exp(-5*dt));s.pointerX=s.reduced?0:px;s.pointerY=s.reduced?0:py;
       const portalBottle=pose(3,2);
       s.ingredientOriginX=portalBottle.x;
       s.ingredientOriginY=portalBottle.y+(bottleRegistration[2].nozzle[1]-.5)*portalBottle.height;
       // The ingredient chapter completely covers the products. Keep pointer
       // smoothing alive, but avoid repainting hidden full-resolution canvases.
-      if(s.worldCovered||(s.ingredientVisibility??0)>.999){frame=requestAnimationFrame(draw);return;}
+      const outside=s.dayOutside??0,returning=s.dayReturn??0;
+      if(outside<.00001&&(s.worldCovered||(s.ingredientVisibility??0)>.999)){frame=requestAnimationFrame(draw);return;}
       ctx.clearRect(0,0,width,height);shadow.clearRect(0,0,width,height);
       const scroll=s.scroll??0,beat=heroBeat(scroll,s.reduced),handoff=heroHandoff(scroll,s.reduced),ground=groundFrame(width,height,s.pointerX,s.pointerY,s.stage,s.reduced);
-      const render=(poses:Pose[],lifts:number[],exits:number[],focus:number,alpha:number,camera:boolean)=>{
+      const render=(poses:Pose[],lifts:number[],exits:number[],focus:number,alpha:number,camera:boolean,groundWeight=1)=>{
         ctx.save();shadow.save();
         if(camera){const hp=poses[0],neckY=hp.y+(bottleRegistration[0].nozzle[1]-.5)*hp.height,c=neckCamera(width,height,hp.x,neckY,handoff.camera);for(const target of [ctx,shadow]){target.translate(hp.x+c.x,neckY+c.y);target.scale(c.scale,c.scale);target.translate(-hp.x,-neckY);}}
-        ctx.translate(ground.x,ground.y);shadow.translate(ground.x,ground.y);
+        ctx.translate(ground.x*groundWeight,ground.y*groundWeight);shadow.translate(ground.x*groundWeight,ground.y*groundWeight);
         for(const index of [1,2,0]){const p={...poses[index],alpha:poses[index].alpha*alpha};bottle(p,index,lifts[index],exits[index],index===0?0:focus*(s.mobile?2.7:4),time);vapour(p,index,lifts[index]*(1-exits[index]),time);}
         ctx.restore();shadow.restore();
       };
-      if(!s.reduced&&scroll<HERO_HANDOFF_END){
+      if(outside>.00001){
+        const arrival=s.reduced?0:1-range((s.dayProgress??0)*2,1.42,2);
+        const poses=collectionReturn(width,height,s.mobile,returning,arrival,s.reduced?0:s.pointerX).map(p=>({...p,alpha:p.alpha*outside}));
+        render(poses,[0,0,0],[0,0,0],0,1,false,returning);
+      } else if(!s.reduced&&scroll<HERO_HANDOFF_END){
         const poses=[0,1,2].map(index=>{
           const p=mixPose({...heroLayout[index],alpha:1},pose(1,index),handoff.settle);
           if(index!==0)p.alpha*=handoff.sides;

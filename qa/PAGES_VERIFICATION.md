@@ -1,5 +1,9 @@
 # Pages and daily rituals verification
 
+Collection-return/type revision: About headings use weight 550 with supporting copy at 500; home, ingredient, lifestyle, Contact and Finder headings use 600 where previously lighter. Mobile material-story text was checked at 390px with no overlap. The outdoor photo uses clean desktop/portrait plates plus the existing live Wild Ground sprite. That same sprite remains opaque as it moves back into its exact final slot; First Light and Velvet Hour follow staggered depth paths into their own slots. Shadows scale and travel with the products. Source-to-final poses, all three decreasing scales, forward/reverse traversal and the existing 120 responsive raster checks pass.
+
+Built-in image generation removed only the baked outdoor bottle and its light/shadow from the existing photographs. Masters: `assets/source/day-outside-clean.png`, `assets/source/day-outside-clean-portrait.png`; delivery: `public/images/day-outside-clean.webp`, `public/images/day-outside-clean-mobile.webp`; exact prompt and input/output mapping: `prompts/collection-return.json`. Originals are preserved. Verification captures: `return-mobile-outside.png`, `return-mobile-half.png`, `return-mobile-row.png`, `about-bold-mobile.png`.
+
 Hero handoff revision: the active renderer now uses one camera/bottle from the lifted atomiser into First Light. The former 30% switch remains a close-up; the camera settles at 72%, with text fully in at 76%. Checked 390 x 844 and 1440 x 900 compositions, matching forward/reverse state at 30%, no camera jump at the renderer boundary, and static reduced motion. Build, cinematic continuity and content checks pass. Captures: `handoff-mobile-30.png`, `handoff-mobile-55.png`, `handoff-mobile-76.png`.
 
 Verified in the production build using the in-app Chromium browser, with desktop and a 390 x 844 iframe viewport. These are browser viewport checks, not physical iPhone hardware measurements.

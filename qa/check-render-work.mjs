@@ -1,0 +1,16 @@
+import fs from 'node:fs/promises';import ts from 'typescript';import assert from 'node:assert/strict';
+const compile=async name=>`data:text/javascript;base64,${Buffer.from(ts.transpileModule(await fs.readFile(new URL(`../src/${name}.ts`,import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText).toString('base64')}`;
+const {writeMotionStyle,writeMotionAttribute,writeMotionData,writeMotionInert}=await import(await compile('motionWrites'));
+let styleWrites=0,attributeWrites=0,inertWrites=0;const values=new Map(),attributes=new Map(),style={getPropertyValue:key=>values.get(key)||'',setProperty:(key,value)=>{values.set(key,value);styleWrites++;}},element={dataset:{},getAttribute:key=>attributes.get(key)||null,setAttribute:(key,value)=>{attributes.set(key,value);attributeWrites++;}};let inert=false;Object.defineProperty(element,'inert',{get:()=>inert,set:value=>{inert=value;inertWrites++;}});
+for(let frame=0;frame<600;frame++){writeMotionStyle(style,'--camera','translate3d(1px,2px,0)');writeMotionAttribute(element,'aria-hidden','false');writeMotionData(element,'scene','1');writeMotionInert(element,false);}
+assert.equal(styleWrites,1);assert.equal(attributeWrites,1);assert.equal(inertWrites,0);assert.equal(element.dataset.scene,'1');writeMotionStyle(style,'--camera','translate3d(2px,2px,0)');writeMotionInert(element,true);assert.equal(styleWrites,2);assert.equal(inertWrites,1);
+const {canPaint}=await import(await compile('paintBounds')),identity={a:1,b:0,c:0,d:1,e:0,f:0};assert(canPaint(10,10,100,100,identity,390,844));assert(!canPaint(500,10,600,100,identity,390,844));assert(canPaint(400,10,500,100,{...identity,e:-100},390,844));assert(!canPaint(10,900,100,1000,identity,390,844));for(const scale of [1,1.5,4.7])for(const angle of [-.3,0,.3]){const m={a:scale*Math.cos(angle),b:scale*Math.sin(angle),c:-scale*Math.sin(angle),d:scale*Math.cos(angle),e:100,f:100};assert(canPaint(-10,-10,10,10,m,390,844),'Visible transformed geometry must never be culled.');}
+console.log('Render work checks passed: duplicate writes suppressed, real updates retained, and transformed visible content never culled.');
+
+// The performance pass must not alter the live visual/timing source files.
+const {createHash}=await import('node:crypto'),manifest=JSON.parse(await fs.readFile(new URL('./performance-visual-baseline.json',import.meta.url),'utf8'));
+for(const [file,hash] of Object.entries(manifest.files)){const text=(await fs.readFile(new URL(`../${file}`,import.meta.url),'utf8')).replace(/\r\n/g,'\n');assert.equal(createHash('sha256').update(text).digest('hex'),hash,`${file} changed from the live visual baseline.`);}
+// Browser serialization and route cleanup must not defeat the write cache.
+let normalizedWrites=0,normalizedValue='';const normalized={getPropertyValue:()=>normalizedValue,setProperty:(key,value)=>{normalizedValue=value.replaceAll(',',', ');normalizedWrites++;}};
+for(let i=0;i<100;i++)writeMotionStyle(normalized,'transform','translate3d(1px,2px,0)');assert.equal(normalizedWrites,1);normalizedValue='';writeMotionStyle(normalized,'transform','translate3d(1px,2px,0)');assert.equal(normalizedWrites,2,'A route cleanup must be repaired.');
+console.log('Live CSS, copy, assets registration, camera/timing math and markup hashes are unchanged.');

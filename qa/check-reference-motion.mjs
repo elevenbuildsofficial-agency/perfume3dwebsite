@@ -48,7 +48,9 @@ console.log('Opaque spatial scene coverage and offscreen text/bottle retirement 
 for(const file of ['story.ts','aboutMotion.ts','usePageFilm.ts','IngredientStory.tsx','CollectionGallery.tsx','LifestyleStory.tsx']){
   const source=await fs.readFile(new URL(`../src/${file}`,import.meta.url),'utf8');
   const assignments=[...source.matchAll(/\.style\.opacity\s*=\s*([^;]+);/g)];
-  assert(assignments.length>0);
+  const safeWrites=[...source.matchAll(/writeMotionStyle\([^,]+,'opacity',([^\)]+)\)/g)];
+  assert(assignments.length+safeWrites.length>0);
+  for(const [,value] of safeWrites)assert.equal(value.trim(),"'1'",`${file} must keep scene opacity constant.`);
   for(const [,value] of assignments)assert.equal(value.trim(),"'1'",`${file} must not fade a scene, heading or product.`);
 }
 for(const file of ['AboutJourney.module.css','PageFilm.module.css','IngredientStory.module.css','CollectionGallery.module.css','LifestyleStory.module.css']){

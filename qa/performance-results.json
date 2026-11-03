@@ -1,0 +1,40 @@
+{
+  "environment": "Local in-app Chromium, 1440x900 CSS pixels, six-second rAF-based scroll benchmark, one-second warmup; no build/test jobs running during measurement. Not native Chrome/Edge application measurements.",
+  "baselineCommit": "c45054eb7bb722290418e139fbc856d469760c9b",
+  "baseline": {
+    "hero": {
+      "samples": 145,
+      "fps": 24.1,
+      "p50ms": 49.9,
+      "p95ms": 66.5,
+      "framesOver33ms": 80,
+      "longTasks": 0
+    },
+    "about": {
+      "samples": 361,
+      "fps": 60,
+      "p50ms": 16.7,
+      "p95ms": 16.8,
+      "framesOver33ms": 0,
+      "longTasks": 0
+    }
+  },
+  "optimized": {
+    "hero": {
+      "samples": 239,
+      "fps": 39.8,
+      "p50ms": 16.8,
+      "p95ms": 50,
+      "framesOver33ms": 18,
+      "longTasks": 0
+    },
+    "about": {
+      "samples": 360,
+      "fps": 60,
+      "p50ms": 16.7,
+      "p95ms": 16.9,
+      "framesOver33ms": 0,
+      "longTasks": 0
+    }
+  }
+}

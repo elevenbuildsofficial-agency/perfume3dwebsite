@@ -1,3 +1,4 @@
+import { writeMotionStyle, writeMotionData, writeMotionInert, writeMotionAttribute } from './motionWrites';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
 import type { StoryState } from './story';
@@ -64,18 +65,18 @@ export function useAboutMotion(paused:boolean) {
       if(scene===previousScene&&!dirty&&!moving){frame=requestAnimationFrame(draw);return;}
       previousScene=scene;dirty=false;
       const compact=story.current.mobile,nature=peak(scene,2,.95),material=peak(scene,3,.84),memory=peak(scene,4,.94);
-      node.style.setProperty('--scene',String(scene));node.style.setProperty('--film-progress',String(stage/4));
-      node.style.setProperty('--nature',String(nature));node.style.setProperty('--material',String(material));node.style.setProperty('--memory',String(memory));
-      node.style.setProperty('--story-ink',material>.53?'#f4eddd':'#29372d');
-      node.style.setProperty('--drift',`${-scene*7+px*5}vw`);
-      node.style.setProperty('--portal-transform',`translate3d(${lerp(0,-width*2.1,clamp(scene/1.6))}px,0,0) scale(${1+clamp(scene)*1.8}) rotate(${-scene*6}deg)`);
-      node.style.setProperty('--branch-transform',`translate3d(${lerp(-100,0,nature)+px*2}vw,${lerp(15,-8,nature)}vh,0) rotate(${lerp(-45,-4,nature)}deg) scale(${lerp(1.4,1,nature)})`);
-      node.style.setProperty('--scan',`${lerp(-80,150,clamp((scene-2.3)/1.4))}%`);
-      node.style.setProperty('--orbit-turn',`${scene*35}deg`);
+      writeMotionStyle(node.style,'--scene',String(scene));writeMotionStyle(node.style,'--film-progress',String(stage/4));
+      writeMotionStyle(node.style,'--nature',String(nature));writeMotionStyle(node.style,'--material',String(material));writeMotionStyle(node.style,'--memory',String(memory));
+      writeMotionStyle(node.style,'--story-ink',material>.53?'#f4eddd':'#29372d');
+      writeMotionStyle(node.style,'--drift',`${-scene*7+px*5}vw`);
+      writeMotionStyle(node.style,'--portal-transform',`translate3d(${lerp(0,-width*2.1,clamp(scene/1.6))}px,0,0) scale(${1+clamp(scene)*1.8}) rotate(${-scene*6}deg)`);
+      writeMotionStyle(node.style,'--branch-transform',`translate3d(${lerp(-100,0,nature)+px*2}vw,${lerp(15,-8,nature)}vh,0) rotate(${lerp(-45,-4,nature)}deg) scale(${lerp(1.4,1,nature)})`);
+      writeMotionStyle(node.style,'--scan',`${lerp(-80,150,clamp((scene-2.3)/1.4))}%`);
+      writeMotionStyle(node.style,'--orbit-turn',`${scene*35}deg`);
       memories.forEach((card,index)=>{
         const theta=(scene-1)*.85+index*2.1,envelope=Math.sin(Math.PI*clamp(scene/4));
         const x=width*((compact?.5:.71)+Math.cos(theta)*(compact?.38:.16)),y=height*((compact?.34:.40)+Math.sin(theta)*(compact?.12:.15));
-        card.style.opacity='1';card.style.transform=`translate3d(${x+(1-envelope)*width*1.5}px,${y-(1-envelope)*height*.3}px,${Math.sin(theta)*45}px) translate(-50%,-50%) rotateY(${Math.sin(theta)*19}deg) rotateZ(${Math.cos(theta)*12}deg)`;
+        writeMotionStyle(card.style,'opacity','1');writeMotionStyle(card.style,'transform',`translate3d(${x+(1-envelope)*width*1.5}px,${y-(1-envelope)*height*.3}px,${Math.sin(theta)*45}px) translate(-50%,-50%) rotateY(${Math.sin(theta)*19}deg) rotateZ(${Math.cos(theta)*12}deg)`);
       });
       const poses=compact?mobile:desktop;
       bottles.current.forEach((image,index)=>{
@@ -84,14 +85,14 @@ export function useAboutMotion(paused:boolean) {
         const x=lerp(a[0]*width,from===3?finale.x:b[0]*width,t),y=lerp(a[1]*height,from===3?finale.y:b[1]*height,t);
         const h=lerp(a[2]*scale,from===3?finale.height/height:b[2]*scale,t),rotation=lerp(a[3],from===3?finale.angle*180/Math.PI:b[3],t);
         const travel=Math.sin(t*Math.PI),orbit=travel*(index===1?-1:1)*(from===3?width*.12:width*.095),arc=travel*height*(from===3?-.04:index===1?.08:-.10);
-        image.style.transform=`translate3d(${x+orbit+px*(index+1)*5*(1-memory)}px,${y+arc+py*7*(1-memory)}px,0) translate(-50%,-50%) perspective(1200px) rotateY(${travel*(index===1?-13:13)}deg) rotate(${rotation+travel*(index-1)*8+px*2*(1-memory)}deg) scale(${h*(1+travel*.06)})`;
-        image.style.opacity='1';image.style.visibility=a[4]===0&&b[4]===0?'hidden':'visible';
+        writeMotionStyle(image.style,'transform',`translate3d(${x+orbit+px*(index+1)*5*(1-memory)}px,${y+arc+py*7*(1-memory)}px,0) translate(-50%,-50%) perspective(1200px) rotateY(${travel*(index===1?-13:13)}deg) rotate(${rotation+travel*(index-1)*8+px*2*(1-memory)}deg) scale(${h*(1+travel*.06)})`);
+        writeMotionStyle(image.style,'opacity','1');writeMotionStyle(image.style,'visibility',a[4]===0&&b[4]===0?'hidden':'visible');
       });
       const nearest=Math.round(scene);if(nearest!==selected){selected=nearest;setActive(nearest);}
       panels.current.forEach((panel,index)=>{
         if(!panel)return;const text=copyTravel(scene,index,4,width,height);
-        panel.style.opacity='1';panel.style.visibility=text.visible?'visible':'hidden';panel.style.transform=`translate3d(${text.x}px,${text.y}px,0)`;panel.dataset.motion='spatial';
-        panel.inert=index!==nearest;panel.setAttribute('aria-hidden',String(index!==nearest));
+        writeMotionStyle(panel.style,'opacity','1');writeMotionStyle(panel.style,'visibility',text.visible?'visible':'hidden');writeMotionStyle(panel.style,'transform',`translate3d(${text.x}px,${text.y}px,0)`);writeMotionData(panel,'motion','spatial');
+        writeMotionInert(panel,index!==nearest);writeMotionAttribute(panel,'aria-hidden',String(index!==nearest));
       });
       frame=requestAnimationFrame(draw);
     };

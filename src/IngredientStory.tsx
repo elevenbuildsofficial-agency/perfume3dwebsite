@@ -1,3 +1,4 @@
+import { writeMotionStyle, writeMotionData, writeMotionInert, writeMotionAttribute } from './motionWrites';
 import { useEffect, useRef, type CSSProperties, type MutableRefObject } from 'react';
 import type { StoryState } from './story';
 import { ingredientShot, range } from './cinematic';
@@ -23,64 +24,65 @@ export default function IngredientStory({story,onScent,onCollection}:{story:Muta
     const animate=(time:number)=>{
       const s=story.current,visibility=s.ingredientVisibility??0,progress=s.ingredientProgress??0,cursor=progress*3;
       if(s.paused||document.hidden){frame=requestAnimationFrame(animate);return;}
+      if(visibility<.00001&&lastVisible===0){frame=requestAnimationFrame(animate);return;}
       if(visibility!==lastVisible){
-        node.style.opacity='1';node.style.visibility=visibility<.00001?'hidden':'visible';node.style.display=visibility<.00001?'none':'block';
+        writeMotionStyle(node.style,'opacity','1');writeMotionStyle(node.style,'visibility',visibility<.00001?'hidden':'visible');writeMotionStyle(node.style,'display',visibility<.00001?'none':'block');
         lastVisible=visibility;
       }
-      node.inert=visibility<.98||(s.ingredientExit??0)>.01;node.setAttribute('aria-hidden',String(node.inert));
+      writeMotionInert(node,visibility<.98||(s.ingredientExit??0)>.01);writeMotionAttribute(node,'aria-hidden',String(node.inert));
       if(visibility>.00001){
         const entry=s.ingredientEntry??1,exit=s.ingredientExit??0;
-        node.style.transform=sceneArrival(entry,width,height,false,s.reduced);node.dataset.motion='spatial';
+        writeMotionStyle(node.style,'transform',sceneArrival(entry,width,height,false,s.reduced));writeMotionData(node,'motion','spatial');
         const interfaceReveal=s.reduced?1:range(entry,.88,1)*(1-range(exit,0,.24));
-        node.style.setProperty('--interface-y',`${(1-interfaceReveal)*height}px`);
-        node.style.setProperty('--scene-exit',String(s.reduced?0:exit));
-        node.dataset.progress=progress.toFixed(4);node.dataset.active=ingredientNotes[Math.round(cursor)].id;
-        node.dataset.reduced=String(s.reduced);node.dataset.aperture=visibility.toFixed(4);
+        writeMotionStyle(node.style,'--interface-y',`${(1-interfaceReveal)*height}px`);
+        writeMotionStyle(node.style,'--scene-exit',String(s.reduced?0:exit));
+        writeMotionData(node,'progress',progress.toFixed(4));writeMotionData(node,'active',ingredientNotes[Math.round(cursor)].id);
+        writeMotionData(node,'reduced',String(s.reduced));writeMotionData(node,'aperture',visibility.toFixed(4));
         subjects.current.forEach((subject,index)=>{
           if(!subject)return;const p=ingredientSubject(cursor,index,s.reduced),h=height*(s.mobile?.30:.49)*p.scale;
-          subject.style.width=`${h*productGeometry[index].aspect}px`;subject.style.height=`${h}px`;
-          subject.style.opacity='1';subject.style.visibility=p.alpha>.001?'visible':'hidden';
-          subject.style.transform=`translate3d(${width*((s.mobile?.52:.73)+p.x-exit*1.3)+s.pointerX*9}px,${height*((s.mobile?.445:.54)+p.y-exit*.16)}px,0) translate(-50%,-50%) perspective(1000px) rotateY(${p.yaw-exit*28}deg) rotateZ(${p.roll-exit*20}deg) scale(${1-exit*.26})`;
+          writeMotionStyle(subject.style,'width',`${h*productGeometry[index].aspect}px`);writeMotionStyle(subject.style,'height',`${h}px`);
+          writeMotionStyle(subject.style,'opacity','1');writeMotionStyle(subject.style,'visibility',p.alpha>.001?'visible':'hidden');
+          writeMotionStyle(subject.style,'transform',`translate3d(${width*((s.mobile?.52:.73)+p.x-exit*1.3)+s.pointerX*9}px,${height*((s.mobile?.445:.54)+p.y-exit*.16)}px,0) translate(-50%,-50%) perspective(1000px) rotateY(${p.yaw-exit*28}deg) rotateZ(${p.roll-exit*20}deg) scale(${1-exit*.26})`);
         });
         foreground.current.forEach((image,index)=>{
           if(!image)return;const distance=cursor-index,travel=s.reduced?0:Math.max(-1,Math.min(1,-distance/.65)),turn=s.reduced?index*.8:cursor*.9+index*.8;
-          image.style.opacity='1';image.style.visibility=(s.reduced?Math.round(cursor)===index:Math.abs(distance)<.8)?'visible':'hidden';
-          image.style.transform=`translate3d(${width*((s.mobile?.50:.72)+Math.sin(turn)*(s.mobile?.36:.22)+travel*1.4-exit*1.8)}px,${height*((s.mobile?.44:.51)+Math.cos(turn)*.13-exit*.18)}px,0) translate(-50%,-50%) rotate(${s.reduced?0:cursor*37+index*23-exit*30}deg)`;
+          writeMotionStyle(image.style,'opacity','1');writeMotionStyle(image.style,'visibility',(s.reduced?Math.round(cursor)===index:Math.abs(distance)<.8)?'visible':'hidden');
+          writeMotionStyle(image.style,'transform',`translate3d(${width*((s.mobile?.50:.72)+Math.sin(turn)*(s.mobile?.36:.22)+travel*1.4-exit*1.8)}px,${height*((s.mobile?.44:.51)+Math.cos(turn)*.13-exit*.18)}px,0) translate(-50%,-50%) rotate(${s.reduced?0:cursor*37+index*23-exit*30}deg)`);
         });
         const active=Math.round(cursor);
-        node.style.setProperty('--note-paper',active===3?collectionPaper(exit):ingredientNotes[active].colour);
+        writeMotionStyle(node.style,'--note-paper',active===3?collectionPaper(exit):ingredientNotes[active].colour);
         if(active!==lastActive){
           node.querySelectorAll<HTMLButtonElement>('[data-ingredient-step]').forEach((button,i)=>{
-            if(i===active)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');
+            if(i===active)writeMotionAttribute(button,'aria-current','step');else button.removeAttribute('aria-current');
           });
           lastActive=active;
         }
         cards.current.forEach((card,index)=>{
           if(!card)return;
           const shot=ingredientShot(cursor,index,s.reduced),distance=cursor-index;
-          card.style.opacity='1';card.style.visibility=shot.visible?'visible':'hidden';
-          card.style.transform=sceneArrival(shot.reveal,width,height,false,s.reduced);
+          writeMotionStyle(card.style,'opacity','1');writeMotionStyle(card.style,'visibility',shot.visible?'visible':'hidden');
+          writeMotionStyle(card.style,'transform',sceneArrival(shot.reveal,width,height,false,s.reduced));
           if(index===3)card.style.background=collectionPaper(exit);
-          card.inert=!shot.visible||shot.copy<.5;card.setAttribute('aria-hidden',String(!shot.visible||shot.copy<.5));
+          writeMotionInert(card,!shot.visible||shot.copy<.5);writeMotionAttribute(card,'aria-hidden',String(!shot.visible||shot.copy<.5));
           if(!shot.visible)return;
           const portalZoom=s.reduced?0:(1-entry)*.08+exit*.08;
-          card.style.setProperty('--travel-scale',String(shot.scale+portalZoom));
-          card.style.setProperty('--travel-x',`${s.reduced?0:(shot.x-exit*1.5)*width+s.pointerX*15}px`);
-          card.style.setProperty('--travel-y',`${s.reduced?0:(shot.y-exit*.28)*height+s.pointerY*10}px`);
-          card.style.setProperty('--travel-pitch',`${shot.pitch}deg`);
-          card.style.setProperty('--travel-yaw',`${shot.yaw}deg`);
-          card.style.setProperty('--travel-rotate',`${shot.roll}deg`);
-          card.style.setProperty('--focus-blur',`${shot.focus}px`);
+          writeMotionStyle(card.style,'--travel-scale',String(shot.scale+portalZoom));
+          writeMotionStyle(card.style,'--travel-x',`${s.reduced?0:(shot.x-exit*1.5)*width+s.pointerX*15}px`);
+          writeMotionStyle(card.style,'--travel-y',`${s.reduced?0:(shot.y-exit*.28)*height+s.pointerY*10}px`);
+          writeMotionStyle(card.style,'--travel-pitch',`${shot.pitch}deg`);
+          writeMotionStyle(card.style,'--travel-yaw',`${shot.yaw}deg`);
+          writeMotionStyle(card.style,'--travel-rotate',`${shot.roll}deg`);
+          writeMotionStyle(card.style,'--focus-blur',`${shot.focus}px`);
           const text=copyTravel(cursor,index,3,width,height,s.reduced);
-          card.style.setProperty('--detail-x',`${text.x}px`);
-          card.style.setProperty('--detail-y',`${text.y+(1-interfaceReveal)*height}px`);
-          card.style.setProperty('--memory-y',`${s.reduced?0:-distance*height*.36}px`);
-          card.style.setProperty('--memory-x',`${s.reduced?0:-exit*width*1.1}px`);
-          card.style.setProperty('--memory-turn',`${s.reduced?0:index%2?-9+distance*16:9+distance*16}deg`);
+          writeMotionStyle(card.style,'--detail-x',`${text.x}px`);
+          writeMotionStyle(card.style,'--detail-y',`${text.y+(1-interfaceReveal)*height}px`);
+          writeMotionStyle(card.style,'--memory-y',`${s.reduced?0:-distance*height*.36}px`);
+          writeMotionStyle(card.style,'--memory-x',`${s.reduced?0:-exit*width*1.1}px`);
+          writeMotionStyle(card.style,'--memory-turn',`${s.reduced?0:index%2?-9+distance*16:9+distance*16}deg`);
           // Near specimens cross the lens faster than the subject, creating depth.
-          card.style.setProperty('--satellite-depth',`${s.reduced?0:(shot.scale-1)*75}px`);
-          card.style.setProperty('--satellite-x',`${s.reduced?0:Math.sin(time*.00024+index)*7+distance*width*.24}px`);
-          card.style.setProperty('--satellite-y',`${s.reduced?0:Math.cos(time*.0003+index)*9-distance*height*.25}px`);
+          writeMotionStyle(card.style,'--satellite-depth',`${s.reduced?0:(shot.scale-1)*75}px`);
+          writeMotionStyle(card.style,'--satellite-x',`${s.reduced?0:Math.sin(time*.00024+index)*7+distance*width*.24}px`);
+          writeMotionStyle(card.style,'--satellite-y',`${s.reduced?0:Math.cos(time*.0003+index)*9-distance*height*.25}px`);
         });
       }
       frame=requestAnimationFrame(animate);

@@ -1,3 +1,5 @@
+import { writeMotionData } from './motionWrites';
+import { canPaint } from './paintBounds';
 import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { content } from './content';
 import type { StoryState } from './story';
@@ -28,6 +30,7 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
     const ctx=node?.getContext('2d'),shadow=shadowNode?.getContext('2d');
     if(!node||!shadowNode||!ctx||!shadow)return;
     let width=innerWidth,height=innerHeight,frame=0,live=true,previous=0,dirty=true,lastStage=-1,lastOutside=-1,lastReturn=-1;
+    let shadowKey='',paintShadows=true;
     const sprites:(BottleSprites|null)[]=[null,null,null];
     let heroLayout=collectionLayout(width,height,'hero'),finalLayout=collectionLayout(width,height,'final');
     let px=0,py=0,tx=0,ty=0;
@@ -37,7 +40,7 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       const ratio=Math.min(devicePixelRatio||1,content.scene.photography.pixelRatio);
       for(const element of [node,shadowNode]){element.width=Math.round(width*ratio);element.height=Math.round(height*ratio);}
       ctx.setTransform(ratio,0,0,ratio,0,0);shadow.setTransform(ratio,0,0,ratio,0,0);
-      dirty=true;
+      dirty=true;shadowKey='';
     };
     const pointer=(event:PointerEvent)=>{if(event.pointerType==='touch')return;tx=event.clientX/width-.5;ty=event.clientY/height-.5;};
     const pose=(stage:number,index:number):Pose=>{
@@ -47,7 +50,9 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
     };
     const mixPose=(a:Pose,b:Pose,t:number):Pose=>({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t),height:lerp(a.height,b.height,t),angle:lerp(a.angle,b.angle,t),alpha:t===0?a.alpha:t===1?b.alpha:1});
     const groundShadow=(p:Pose,index:number,lift:number,exit:number)=>{
+      if(!paintShadows)return;
       const base=p.y+silhouetteBounds(index,p.angle).bottom*p.height,foot=p.height*productGeometry[index].aspect*bottleRegistration[index].baseWidth;
+      if(!canPaint(p.x-p.height,base-p.height*.12,p.x+p.height*1.5,base+p.height*.7,shadow.getTransform(),shadowNode.width,shadowNode.height))return;
       shadow.save();shadow.globalAlpha=p.alpha;
       const modelShadow=sprites[index]?.shadow;
       if(modelShadow){shadow.save();shadow.translate(p.x,p.y);shadow.rotate(p.angle);shadow.drawImage(modelShadow,-p.height*productGeometry[index].aspect/2,-p.height/2,p.height*productGeometry[index].aspect,p.height);shadow.restore();}
@@ -92,13 +97,15 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       }
       ctx.filter='none';
       // Brass gets a narrow moving streak; wood retains broad photographic highlights.
-      if(lift>.01&&!story.current.reduced){ctx.save();ctx.globalCompositeOperation='source-atop';ctx.globalAlpha*=Math.sin(clamp(lift)*Math.PI)*.65;const gx=(-.23+lift*.46)*w,glint=ctx.createLinearGradient(gx-w*.05,0,gx+w*.05,0);glint.addColorStop(0,'#fff6d500');glint.addColorStop(.5,'#fff6d5');glint.addColorStop(1,'#fff6d500');ctx.fillStyle=glint;ctx.fillRect(-w*.18,(r.capBottom-.5)*h,w*.36,h*.047);ctx.restore();}
+      if(lift>.01&&lift<1&&!story.current.reduced){ctx.save();ctx.globalCompositeOperation='source-atop';ctx.globalAlpha*=Math.sin(clamp(lift)*Math.PI)*.65;const gx=(-.23+lift*.46)*w,glint=ctx.createLinearGradient(gx-w*.05,0,gx+w*.05,0);glint.addColorStop(0,'#fff6d500');glint.addColorStop(.5,'#fff6d5');glint.addColorStop(1,'#fff6d500');ctx.fillStyle=glint;ctx.fillRect(-w*.18,(r.capBottom-.5)*h,w*.36,h*.047);ctx.restore();}
       // A short, broken stone reflection sits immediately below the thick glass base.
-      ctx.save();ctx.beginPath();ctx.rect(-w*.42,bottom,w*.84,Math.min(12,h*.032));ctx.clip();ctx.globalAlpha*=.09;ctx.filter='blur(1.4px)';ctx.translate(0,bottom*1.13);ctx.scale(1,-.13);ctx.drawImage(sprite.body,-w/2,-h/2,w,h);ctx.restore();
+      if(canPaint(-w*.42,bottom,w*.42,bottom+Math.min(12,h*.032),ctx.getTransform(),node.width,node.height)){
+        ctx.save();ctx.beginPath();ctx.rect(-w*.42,bottom,w*.84,Math.min(12,h*.032));ctx.clip();ctx.globalAlpha*=.09;ctx.filter='blur(1.4px)';ctx.translate(0,bottom*1.13);ctx.scale(1,-.13);ctx.drawImage(sprite.body,-w/2,-h/2,w,h);ctx.restore();
+      }
       ctx.restore();
     };
     const vapour=(p:Pose,index:number,amount:number,time:number)=>{
-      if(amount<.002||story.current.reduced)return;
+      if(amount<.002||p.alpha<.002||story.current.reduced)return;
       const r=bottleRegistration[index],x=p.x+(r.nozzle[0]-.5)*p.height*productGeometry[index].aspect,y=p.y+(r.nozzle[1]-.5)*p.height;
       const colours=['255,241,201','236,206,219','218,232,194'];
       ctx.save();ctx.globalAlpha=p.alpha*amount;ctx.globalCompositeOperation='screen';
@@ -127,13 +134,27 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       // smoothing alive, but avoid repainting hidden full-resolution canvases.
       const outside=s.dayOutside??0,returning=s.dayReturn??0;
       if(outside<.00001&&(s.worldCovered||(s.ingredientVisibility??0)>.999)){frame=requestAnimationFrame(draw);return;}
-      ctx.clearRect(0,0,width,height);shadow.clearRect(0,0,width,height);
+      ctx.clearRect(0,0,width,height);
       const scroll=s.scroll??0,beat=heroBeat(scroll,s.reduced),handoff=heroHandoff(scroll,s.reduced),ground=groundFrame(width,height,s.pointerX,s.pointerY,s.stage,s.reduced);
       const render=(poses:Pose[],lifts:number[],exits:number[],focus:number,alpha:number,camera:boolean,groundWeight=1)=>{
+        // Shadows do not breathe or shimmer. Reuse their exact full-resolution
+        // pixels until pose, cap, camera, lighting registration or assets change.
+        const key=JSON.stringify([poses,lifts,exits,alpha,camera?handoff.camera:0,ground.x*groundWeight,ground.y*groundWeight,sprites.map(Boolean)]);
+        paintShadows=key!==shadowKey;
+        if(paintShadows){shadow.clearRect(0,0,width,height);shadowKey=key;}
         ctx.save();shadow.save();
         if(camera){const hp=poses[0],neckY=hp.y+(bottleRegistration[0].nozzle[1]-.5)*hp.height,c=neckCamera(width,height,hp.x,neckY,handoff.camera);for(const target of [ctx,shadow]){target.translate(hp.x+c.x,neckY+c.y);target.scale(c.scale,c.scale);target.translate(-hp.x,-neckY);}}
         ctx.translate(ground.x*groundWeight,ground.y*groundWeight);shadow.translate(ground.x*groundWeight,ground.y*groundWeight);
-        for(const index of [1,2,0]){const p={...poses[index],alpha:poses[index].alpha*alpha};bottle(p,index,lifts[index],exits[index],index===0?0:focus*(s.mobile?2.7:4),time);vapour(p,index,lifts[index]*(1-exits[index]),time);}
+        const matrix=ctx.getTransform();
+        for(const index of [1,2,0]){
+          const p={...poses[index],alpha:poses[index].alpha*alpha};
+          if(p.alpha<.002)continue;
+          // Keep a generous margin for the cast shadow, cap and scent curl.
+          const bounds=silhouetteBounds(index,p.angle);
+          if(!canPaint(p.x+(bounds.left-.2)*p.height,p.y+(bounds.top-.6)*p.height-exits[index]*height,p.x+(bounds.right+.8)*p.height,p.y+(bounds.bottom+.7)*p.height,matrix,node.width,node.height))continue;
+          if(camera&&index!==0&&handoff.sides===0)continue;
+          bottle(p,index,lifts[index],exits[index],index===0?0:focus*(s.mobile?2.7:4),time);vapour(p,index,lifts[index]*(1-exits[index]),time);
+        }
         ctx.restore();shadow.restore();
       };
       if(outside>.00001){
@@ -158,10 +179,10 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       }
       // Scent-coloured flecks remain delicate; no particles in reduced motion.
       if(!s.reduced&&s.stage>.85&&s.stage<3.7){const index=clamp(Math.round(s.stage)-1,0,2);ctx.save();ctx.fillStyle=content.products[index].palette.a;for(let i=0;i<13;i++){const life=(time*.000012+i*.077)%1;ctx.globalAlpha=Math.sin(life*Math.PI)*.26;const x=width*(.16+(i*.137)% .70)+Math.sin(life*5+i)*12,y=height*(.76-life*.53);ctx.beginPath();ctx.ellipse(x,y,1.2+i%2,.7,life*5,0,Math.PI*2);ctx.fill();}ctx.restore();}
-      node.dataset.scroll=scroll.toFixed(4);node.dataset.lift=beat.lift.toFixed(4);node.dataset.dissolve=handoff.settle.toFixed(4);node.dataset.camera=handoff.camera.toFixed(4);
+      writeMotionData(node,'scroll',scroll.toFixed(4));writeMotionData(node,'lift',beat.lift.toFixed(4));writeMotionData(node,'dissolve',handoff.settle.toFixed(4));writeMotionData(node,'camera',handoff.camera.toFixed(4));
       frame=requestAnimationFrame(draw);
     };
-    resize();content.products.forEach((_,index)=>{loadBottleSprites(index).then(sprite=>{if(!live)return;sprites[index]=sprite;dirty=true;if(sprites.every(Boolean))setReady(true);}).catch(error=>console.error(error));});
+    resize();content.products.forEach((_,index)=>{loadBottleSprites(index).then(sprite=>{if(!live)return;sprites[index]=sprite;dirty=true;shadowKey='';if(sprites.every(Boolean))setReady(true);}).catch(error=>console.error(error));});
     addEventListener('resize',resize);addEventListener('pointermove',pointer,{passive:true});frame=requestAnimationFrame(draw);
     return()=>{live=false;cancelAnimationFrame(frame);removeEventListener('resize',resize);removeEventListener('pointermove',pointer);};
   },[story]);

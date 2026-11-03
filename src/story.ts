@@ -1,3 +1,4 @@
+import { writeMotionStyle, writeMotionData, writeMotionInert, writeMotionAttribute } from './motionWrites';
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -114,16 +115,16 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
         const ink = contrast(bgLum, lum(...darkInk as [number, number, number])) > contrast(bgLum, lum(...lightInk as [number, number, number])) ? darkInk : lightInk;
         [ir, ig, ib] = ink;
       }
-      root.style.setProperty('--bg', `rgb(${r} ${g} ${blue})`);
-      root.style.setProperty('--liquid-a', `rgb(${Math.round(a.a[0] + (b.a[0] - a.a[0]) * t)} ${Math.round(a.a[1] + (b.a[1] - a.a[1]) * t)} ${Math.round(a.a[2] + (b.a[2] - a.a[2]) * t)})`);
-      root.style.setProperty('--liquid-b', `rgb(${Math.round(a.b[0] + (b.b[0] - a.b[0]) * t)} ${Math.round(a.b[1] + (b.b[1] - a.b[1]) * t)} ${Math.round(a.b[2] + (b.b[2] - a.b[2]) * t)})`);
+      writeMotionStyle(root.style,'--bg', `rgb(${r} ${g} ${blue})`);
+      writeMotionStyle(root.style,'--liquid-a', `rgb(${Math.round(a.a[0] + (b.a[0] - a.a[0]) * t)} ${Math.round(a.a[1] + (b.a[1] - a.a[1]) * t)} ${Math.round(a.a[2] + (b.a[2] - a.a[2]) * t)})`);
+      writeMotionStyle(root.style,'--liquid-b', `rgb(${Math.round(a.b[0] + (b.b[0] - a.b[0]) * t)} ${Math.round(a.b[1] + (b.b[1] - a.b[1]) * t)} ${Math.round(a.b[2] + (b.b[2] - a.b[2]) * t)})`);
       const ink = `rgb(${ir} ${ig} ${ib})`;
-      if (ink !== lastInk) { root.style.setProperty('--ink', ink); lastInk = ink; }
-      root.style.setProperty('--progress', String(Math.min(1,s.scroll/lastChapter)));
-      root.style.setProperty('--bottle-visibility',(s.dayOutside??0)>.00001?'visible':s.worldCovered?'hidden':'visible');
-      root.style.setProperty('--scene-layer',(s.dayOutside??0)>.00001?'8':'2');
-      root.style.setProperty('--ingredient-camera',ingredientLens(innerWidth,innerHeight,ingredients.camera,s.ingredientOriginX,s.ingredientOriginY).transform);
-      root.style.setProperty('--product-x', `${s.mobile ? 0 : s.x * 11}vw`);
+      if (ink !== lastInk) { writeMotionStyle(root.style,'--ink', ink); lastInk = ink; }
+      writeMotionStyle(root.style,'--progress', String(Math.min(1,s.scroll/lastChapter)));
+      writeMotionStyle(root.style,'--bottle-visibility',(s.dayOutside??0)>.00001?'visible':s.worldCovered?'hidden':'visible');
+      writeMotionStyle(root.style,'--scene-layer',(s.dayOutside??0)>.00001?'8':'2');
+      writeMotionStyle(root.style,'--ingredient-camera',ingredientLens(innerWidth,innerHeight,ingredients.camera,s.ingredientOriginX,s.ingredientOriginY).transform);
+      writeMotionStyle(root.style,'--product-x', `${s.mobile ? 0 : s.x * 11}vw`);
       const nearest = Math.round(s.stage);
       const navigationStep=s.scroll>=lastChapter-.65?7:hasDay&&(day.entry>.15||s.scroll>=dayStart)?6:hasGallery&&(gallery.entry>.15||s.scroll>=galleryStart)?5:ingredients.entry>.15||s.scroll>=ingredientStart?4:Math.min(3,nearest);
       if (navigationStep !== currentActive) { currentActive = navigationStep; setActive(navigationStep); }
@@ -136,14 +137,14 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
         if(index===3)x-=ingredients.entry*innerWidth*1.12;
         const finalExit=hasDay?day.exit:ingredients.exit;
         if(index===4){const arrival=s.reduced?finalExit:range(finalExit,.30,1);visible=arrival>0;x=0;y=(1-arrival)*innerHeight;}
-        panel.style.opacity='1';panel.style.visibility=visible?'visible':'hidden';
-        panel.style.transform=`translate3d(${x}px,${y}px,0)`;panel.dataset.motion='spatial';
-        panel.inert = index !== nearest||(s.ingredientVisibility??0)>.01||(s.dayVisibility??0)>.01||(s.galleryVisibility??0)>.01;
-        panel.setAttribute('aria-hidden', String(index !== nearest||(s.ingredientVisibility??0)>.5||(s.dayVisibility??0)>.5||(s.galleryVisibility??0)>.5));
+        writeMotionStyle(panel.style,'opacity','1');writeMotionStyle(panel.style,'visibility',visible?'visible':'hidden');
+        writeMotionStyle(panel.style,'transform',`translate3d(${x}px,${y}px,0)`);writeMotionData(panel,'motion','spatial');
+        writeMotionInert(panel,index !== nearest||(s.ingredientVisibility??0)>.01||(s.dayVisibility??0)>.01||(s.galleryVisibility??0)>.01);
+        writeMotionAttribute(panel,'aria-hidden', String(index !== nearest||(s.ingredientVisibility??0)>.5||(s.dayVisibility??0)>.5||(s.galleryVisibility??0)>.5));
       });
       if (wordmark.current) {
-        wordmark.current.style.opacity='1';wordmark.current.style.visibility=(s.reduced?nearest===0:beat.text>0)?'visible':'hidden';
-        wordmark.current.style.transform=`translate3d(${s.reduced?0:-(1-beat.text)*innerWidth*1.12}px,${s.mobile||s.reduced?0:-(1-beat.text)*120}px,0)`;
+        writeMotionStyle(wordmark.current.style,'opacity','1');writeMotionStyle(wordmark.current.style,'visibility',(s.reduced?nearest===0:beat.text>0)?'visible':'hidden');
+        writeMotionStyle(wordmark.current.style,'transform',`translate3d(${s.reduced?0:-(1-beat.text)*innerWidth*1.12}px,${s.mobile||s.reduced?0:-(1-beat.text)*120}px,0)`);
       }
       frame = requestAnimationFrame(animate);
     };

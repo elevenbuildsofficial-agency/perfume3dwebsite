@@ -1,3 +1,4 @@
+import { writeMotionStyle, writeMotionData, writeMotionInert, writeMotionAttribute } from './motionWrites';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
 import { clamp, lerp, range } from './cinematic';
@@ -12,9 +13,9 @@ export function usePageFilm(count:number,paused:boolean) {
   useEffect(()=>{
     const node=root.current,stage=viewport.current;if(!node||!stage)return;
     const media=matchMedia('(prefers-reduced-motion:reduce)');
-    let frame=0,focusFrame=0,previous=0,cursor=0,selected=-1,width=stage.clientWidth,height=stage.clientHeight,length=1,top=0,tx=0,ty=0,px=0,py=0;
+    let lastKey='',frame=0,focusFrame=0,previous=0,cursor=0,selected=-1,width=stage.clientWidth,height=stage.clientHeight,length=1,top=0,tx=0,ty=0,px=0,py=0;
     const measure=()=>{width=stage.clientWidth;height=stage.clientHeight;top=node.offsetTop;length=Math.max(1,node.offsetHeight-height);};
-    const init=()=>{reduce.current=media.matches||new URLSearchParams(location.search).get('motion')==='reduce';node.dataset.reduced=String(reduce.current);lenis.current?.destroy();lenis.current=reduce.current?null:new Lenis({duration:1.05,smoothWheel:true,touchMultiplier:1});if(pause.current)lenis.current?.stop();measure();};
+    const init=()=>{reduce.current=media.matches||new URLSearchParams(location.search).get('motion')==='reduce';writeMotionData(node,'reduced',String(reduce.current));lenis.current?.destroy();lenis.current=reduce.current?null:new Lenis({duration:1.05,smoothWheel:true,touchMultiplier:1});if(pause.current)lenis.current?.stop();measure();};
     const pointer=(event:PointerEvent)=>{if(event.pointerType==='touch')return;tx=event.clientX/width-.5;ty=event.clientY/height-.5;};
     const focus=(event:FocusEvent)=>{
       const target=event.target;if(!(target instanceof Element))return;
@@ -33,27 +34,29 @@ export function usePageFilm(count:number,paused:boolean) {
       const target=clamp((scrollY-top)/length)*(count-1);
       cursor=reduce.current?target:lerp(cursor,target,1-Math.exp(-14*dt));
       px=lerp(px,tx,1-Math.exp(-5*dt));py=lerp(py,ty,1-Math.exp(-5*dt));
+      const key=JSON.stringify([cursor,px,py,reduce.current,width,height]);
+      if(key===lastKey){frame=requestAnimationFrame(draw);return;}lastKey=key;
       const nearest=Math.round(cursor);
       if(selected!==nearest){selected=nearest;setActive(nearest);}
-      stage.dataset.scene=cursor.toFixed(4);stage.style.setProperty('--film-progress',String(cursor/(count-1)));
+      writeMotionData(stage,'scene',cursor.toFixed(4));writeMotionStyle(stage.style,'--film-progress',String(cursor/(count-1)));
       panels.current.forEach((panel,index)=>{
         if(!panel)return;
         const shot=sceneShot(cursor,index,count-1,reduce.current),visible=shot.visible;
-        panel.style.visibility=visible?'visible':'hidden';panel.style.opacity='1';
-        panel.style.transform=sceneArrival(shot.entry,width,height,false,reduce.current);panel.dataset.motion='spatial';
-        if(!visible){panel.inert=true;panel.setAttribute('aria-hidden','true');return;}
+        writeMotionStyle(panel.style,'visibility',visible?'visible':'hidden');writeMotionStyle(panel.style,'opacity','1');
+        writeMotionStyle(panel.style,'transform',sceneArrival(shot.entry,width,height,false,reduce.current));writeMotionData(panel,'motion','spatial');
+        if(!visible){writeMotionInert(panel,true);writeMotionAttribute(panel,'aria-hidden','true');return;}
         const approach=reduce.current?0:index===0?0:1-range(cursor,index-.58,index);
         const departure=reduce.current?0:index===count-1?0:range(cursor,index+.12,index+.82);
         const text=copyTravel(cursor,index,count-1,width,height,reduce.current),copy=Number(text.settled);
         // Forms and choices become interactive once the camera has settled.
         // Focusing a half-revealed input must not interrupt its scroll arrival.
-        panel.inert=nearest!==index||copy<.98;panel.setAttribute('aria-hidden',String(panel.inert));
-        panel.style.setProperty('--copy-x',`${text.x}px`);panel.style.setProperty('--copy-y',`${text.y}px`);
-        panel.style.setProperty('--camera-scale',String(1+approach*.05+departure*.07));
-        panel.style.setProperty('--camera-x',`${reduce.current?0:(approach*.012-departure*.015)*width+px*8}px`);
-        panel.style.setProperty('--camera-y',`${reduce.current?0:(approach*.01-departure*.01)*height+py*5}px`);
-        panel.style.setProperty('--object-turn',`${reduce.current?0:approach*3-departure*4+px*3}deg`);
-        panel.style.setProperty('--object-scale',String(1+approach*.06+departure*.10));
+        writeMotionInert(panel,nearest!==index||copy<.98);writeMotionAttribute(panel,'aria-hidden',String(panel.inert));
+        writeMotionStyle(panel.style,'--copy-x',`${text.x}px`);writeMotionStyle(panel.style,'--copy-y',`${text.y}px`);
+        writeMotionStyle(panel.style,'--camera-scale',String(1+approach*.05+departure*.07));
+        writeMotionStyle(panel.style,'--camera-x',`${reduce.current?0:(approach*.012-departure*.015)*width+px*8}px`);
+        writeMotionStyle(panel.style,'--camera-y',`${reduce.current?0:(approach*.01-departure*.01)*height+py*5}px`);
+        writeMotionStyle(panel.style,'--object-turn',`${reduce.current?0:approach*3-departure*4+px*3}deg`);
+        writeMotionStyle(panel.style,'--object-scale',String(1+approach*.06+departure*.10));
       });
       frame=requestAnimationFrame(draw);
     };

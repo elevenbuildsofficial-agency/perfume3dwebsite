@@ -14,12 +14,3 @@ The active products are photographic layers. The movement uses perspective, arcs
 The original video is retained locally and excluded from this change's Git staging. Analysis sheets and frame captures are ignored QA artifacts. Reference extraction is reproducible with `node qa/inspect-reference.mjs`.
 
 Verification: production build, cinematic continuity, reference-motion math, content/media checks and the existing 120 responsive bottle raster cases pass. Tested the 390px gallery's Wild Ground selector and its Explore button through to the correct scent chapter. Inspected the ingredient subject, floating photo cards and full gallery on mobile and desktop. Reduced motion uses still product compositions with zero yaw/roll/depth animation. The gallery-to-Day flow and existing final bottle return remain on the shared reversible timeline.
-
-
-## Opaque spatial transitions — November 3
-
-Replaced structural opacity timelines across Home, Ingredients, Collection, Everyday Morrow, About, Contact and the scent finder. Headings now travel outside the viewport; products follow full-opacity arcs. Ingredient and lifestyle photographs enter as opaque perspective planes over a complete backing shot. About's nature and material sets move past the camera instead of dissolving, and its product/photo layers remain solid. The hero retains one continuous cap-lift/dolly/pullback camera, with its full-screen haze removed.
-
-The Fig-to-Collection handoff shares one paper set: fig leaves, green flacon and memory photograph recede left while three solid product cards sweep in along a curved perspective track. The paper receives a subtle colour grade, rather than compositing old photographs through the cards. Each root retires with `display:none` once fully covered, preventing explicitly visible child cards from escaping a hidden parent. Reduced motion keeps static compositions. Glass, grain, reflection and cast-shadow transparency remain material properties.
-
-Verification includes the production build, 120 responsive layout raster cases, full-opacity/offscreen-retirement and covered-scene math checks, all 27 scent-matching outcomes, and source guards against reintroducing scene/text/product opacity timelines. Browser checks cover the desktop and 390px handoff at intermediate stops, reverse restoration, About Form, contact-form focus, scent-finder choices, final bottle regrouping and reduced motion.

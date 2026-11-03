@@ -2,7 +2,6 @@ import { writeMotionStyle, writeMotionData, writeMotionInert, writeMotionAttribu
 import { useEffect, useRef, type CSSProperties, type MutableRefObject } from 'react';
 import type { StoryState } from './story';
 import { range } from './cinematic';
-import { copyTravel, sceneArrival, sceneShot } from './spatialMotion';
 import styles from './LifestyleStory.module.css';
 
 export const dayMoments=[
@@ -15,36 +14,33 @@ export default function LifestyleStory({story,onFind,onContinue}:{story:MutableR
   const root=useRef<HTMLDivElement>(null),panels=useRef<(HTMLElement|null)[]>([]);
   useEffect(()=>{
     const node=root.current;if(!node)return;
-    let frame=0,w=innerWidth,h=innerHeight,last=-1,lastKey='',wasVisible:boolean|undefined;
-    const resize=()=>{w=innerWidth;h=innerHeight;lastKey='';};
+    let frame=0,w=node.clientWidth,h=node.clientHeight,last=-1,lastKey='',wasVisible:boolean|undefined;
+    const resize=()=>{w=node.clientWidth;h=node.clientHeight;lastKey='';};
     const draw=()=>{
       const s=story.current,v=s.dayVisibility??0,cursor=(s.dayProgress??0)*2,entry=s.dayEntry??0,returning=s.dayReturn??0;
       if(s.paused||document.hidden){frame=requestAnimationFrame(draw);return;}
       if(v<.00001&&wasVisible===false){frame=requestAnimationFrame(draw);return;}
-      const key=JSON.stringify([s.dayProgress,s.dayEntry,s.dayExit,s.dayReturn,s.pointerX,s.reduced,w,h]);
+      const key=JSON.stringify([v,s.dayProgress,s.dayEntry,s.dayExit,s.dayReturn,s.pointerX,s.reduced,w,h]);
       if(key===lastKey){frame=requestAnimationFrame(draw);return;}lastKey=key;wasVisible=v>.00001;
-      writeMotionStyle(node.style,'opacity','1');writeMotionStyle(node.style,'visibility',v>.00001?'visible':'hidden');writeMotionStyle(node.style,'display',v>.00001?'block':'none');writeMotionInert(node,entry<.999||returning>.001);writeMotionAttribute(node,'aria-hidden',String(node.inert));
+      writeMotionStyle(node.style,'opacity',String(v));writeMotionStyle(node.style,'visibility',v>.00001?'visible':'hidden');writeMotionInert(node,v<.98||returning>.001);writeMotionAttribute(node,'aria-hidden',String(node.inert));
       if(v>.00001){
-        // Opaque photographic planes move past the lens, without blending shots.
-        writeMotionStyle(node.style,'transform',`translateY(${(s.dayExit??0)*-h*1.08}px) ${sceneArrival(entry,w,h,false,s.reduced)}`);
-        writeMotionData(node,'motion','spatial');
+        // Every shot stays full-frame; scroll blends complete photographic scenes.
         const ui=s.reduced?1:range(entry,.85,1)*(1-range(returning,0,.16));
-        writeMotionStyle(node.style,'--day-ui-y',`${(1-ui)*h}px`);writeMotionData(node,'scene',cursor.toFixed(4));writeMotionData(node,'active',dayMoments[Math.round(cursor)].id);
+        writeMotionStyle(node.style,'--day-ui',String(ui));writeMotionData(node,'scene',cursor.toFixed(4));writeMotionData(node,'active',dayMoments[Math.round(cursor)].id);
         if(last!==Math.round(cursor)){last=Math.round(cursor);node.querySelectorAll('[data-moment]').forEach((button,i)=>{if(i===last)writeMotionAttribute(button,'aria-current','step');else button.removeAttribute('aria-current');});}
         panels.current.forEach((panel,i)=>{
           if(!panel)return;
-          const shot=sceneShot(cursor,i,2,s.reduced),visible=shot.visible;
-          writeMotionStyle(panel.style,'visibility',visible?'visible':'hidden');writeMotionStyle(panel.style,'opacity','1');
-          writeMotionStyle(panel.style,'transform',i===2?`translateX(${s.reduced?0:(1-shot.entry)*w*1.12}px)`:sceneArrival(shot.entry,w,h,false,s.reduced));
+          const reveal=s.reduced?Number(Math.round(cursor)===i):i===0?1:range(cursor,i-.58,i-.04),next=i===2?0:range(cursor,i+.42,i+.96);
+          const visible=s.reduced?Math.round(cursor)===i:reveal>0&&next<1;
+          writeMotionStyle(panel.style,'visibility',visible?'visible':'hidden');writeMotionStyle(panel.style,'opacity',String(reveal));
           writeMotionInert(panel,Math.round(cursor)!==i);writeMotionAttribute(panel,'aria-hidden',String(Math.round(cursor)!==i));
           if(!visible)return;
           const arrival=s.reduced?0:i===0?0:1-range(cursor,i-.58,i),departure=s.reduced?0:i===2?0:range(cursor,i+.16,i+.82);
           writeMotionStyle(panel.style,'--day-scale',String(1+arrival*.045+departure*.065));
           writeMotionStyle(panel.style,'--day-x',`${s.reduced?0:(arrival*.012-departure*.015)*w+s.pointerX*7}px`);
           writeMotionStyle(panel.style,'--day-y',`${s.reduced?0:(arrival*.01-departure*.01)*h}px`);
-          const text=copyTravel(cursor,i,2,w,h,s.reduced);
-          writeMotionStyle(panel.style,'--day-copy-x',`${text.x}px`);
-          writeMotionStyle(panel.style,'--day-copy-y',`${text.y+(1-ui)*h}px`);
+          const text=ui*(s.reduced?1:(i===0?1:range(cursor,i-.17,i-.02))*(1-(i===2?0:range(cursor,i+.15,i+.41))));
+          writeMotionStyle(panel.style,'--day-copy',String(text));
         });
       }
       frame=requestAnimationFrame(draw);

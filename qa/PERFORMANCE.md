@@ -1,27 +1,24 @@
-# Performance-only update
+# Restored choreography with render optimizations
 
-The live visual baseline is commit c45054e. The unfinished continuous-scene work is saved locally in the ignored qa/continuous-scroll-wip.local folder and is not part of this release.
+The visual and motion baseline is now commit `4961d7a`, immediately before the rejected full-screen slide changes in `c45054e`. The user requested this rollback after reviewing the deployed transitions. The unfinished continuous-scene redesign remains in the ignored `qa/continuous-scroll-wip.local` folder and is not included.
 
-## Changes
+## Restored behavior
 
-- Avoid duplicate inline styles, dataset writes, accessibility attributes and inert-state mutations. CSS serialization and route cleanup are handled explicitly.
-- Reuse the exact full-resolution shadow canvas until its poses, caps, camera, parallax, viewport or loaded assets change.
-- Cull only drawing regions outside the canvas, including conservative margins for shadows, reflections, cap motion and vapour. Do not paint zero-opacity vapour or zero-strength specular sweeps.
-- Stop updating hidden ingredient/gallery/ritual chapters and skip unchanged gallery, ritual and form frames. Cache gallery dimensions on resize rather than reading layout after frame writes.
+- Original full-frame photographic handoffs across Home, rituals, About, Contact and the scent finder; removed the later opaque screen-plane slides.
+- Original bottle paths, opacity, cap behavior, hero haze and collection return; removed the later forced full-opacity travel and extra bottle entrances.
+- All pre-slide CSS, copy, assets, markup, camera and timing functions match the original Git source. Authored DOM animation expressions are also fingerprinted against that source, independently of the duplicate-write helpers.
 
-No CSS, image assets, markup, text, layout definitions, camera math, animation timing, pixel ratio, particle count, blur radius or effect quality was reduced. The visual baseline manifest checks the unchanged source files against the live commit. All motion values and drawing effects remain in place; only redundant or invisible work is skipped.
+## Retained optimizations
 
-## Measurement
+- Suppress duplicate style, dataset, accessibility and inert-state writes, including CSS serialization and route cleanup handling.
+- Reuse full-resolution shadow pixels until pose, cap, camera, parallax, viewport or loaded assets change.
+- Cull only offscreen drawing regions, with conservative bounds for reflections, cast shadows, cap motion and vapour.
+- Skip hidden or unchanged chapter updates and cache gallery dimensions on resize. Image quality, pixel ratio, particles, blur radii and glass effects remain intact.
 
-Local in-app Chromium at 1440 x 900, the same six-second scripted scroll and one-second warmup before/after. No builds or raster tests ran during the timed intervals. These are local rAF cadence measurements, not native Chrome/Edge application benchmarks or a guarantee for all hardware.
+## Measurements
 
-| Scene | Before FPS | After FPS | Before p95 | After p95 | Frames over 33.5ms before/after |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Hero cap lift and pullback | 24.1 | 39.8 | 66.5ms | 50ms | 80 / 18 |
-| About journey | 60 | 60 | 16.8ms | 16.9ms | 0 / 0 |
-
-Raw results: performance-results.json. The harness is qa/motion-performance.html and is copied to the local preview manually; it is not included in the production site.
+`performance-results.json` contains historical measurements of the earlier `c45054e` / `44d9bd7` performance pass. Those numbers do not measure this restored choreography. The six-second local Chromium harness remains available in `qa/motion-performance.html` and is excluded from production builds.
 
 ## Verification
 
-Production build; render-work/cache/serialization/cleanup tests; visual source hashes; reference-motion and reverse traversal; cinematic boundaries; 120 responsive bottle raster checks; content/media/SEO checks; all 27 scent outcomes. Browser checks cover the original hero, mobile gallery and final row, plus form/finder focus and navigation. Full-quality effects remain enabled throughout.
+Production build; render cache/serialization/cleanup checks; pre-slide source hashes and authored animation expressions; reference paths and reverse traversal; cinematic boundaries; 120 responsive bottle raster cases; content/media/SEO checks; all 27 scent outcomes. Browser verification covers the reported ritual transitions, the original collection return and About on desktop and mobile.

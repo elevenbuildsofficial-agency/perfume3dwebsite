@@ -2,7 +2,6 @@ import { writeMotionStyle, writeMotionData, writeMotionInert, writeMotionAttribu
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
 import { clamp, lerp, range } from './cinematic';
-import { copyTravel, sceneArrival, sceneShot } from './spatialMotion';
 
 export function usePageFilm(count:number,paused:boolean) {
   const root=useRef<HTMLElement>(null),viewport=useRef<HTMLDivElement>(null),panels=useRef<(HTMLElement|null)[]>([]);
@@ -41,17 +40,18 @@ export function usePageFilm(count:number,paused:boolean) {
       writeMotionData(stage,'scene',cursor.toFixed(4));writeMotionStyle(stage.style,'--film-progress',String(cursor/(count-1)));
       panels.current.forEach((panel,index)=>{
         if(!panel)return;
-        const shot=sceneShot(cursor,index,count-1,reduce.current),visible=shot.visible;
-        writeMotionStyle(panel.style,'visibility',visible?'visible':'hidden');writeMotionStyle(panel.style,'opacity','1');
-        writeMotionStyle(panel.style,'transform',sceneArrival(shot.entry,width,height,false,reduce.current));writeMotionData(panel,'motion','spatial');
+        const reveal=reduce.current?Number(nearest===index):index===0?1:range(cursor,index-.58,index-.04);
+        const next=index===count-1?0:range(cursor,index+.42,index+.96);
+        const visible=reduce.current?nearest===index:reveal>0&&next<1;
+        writeMotionStyle(panel.style,'visibility',visible?'visible':'hidden');writeMotionStyle(panel.style,'opacity',String(reveal));
         if(!visible){writeMotionInert(panel,true);writeMotionAttribute(panel,'aria-hidden','true');return;}
         const approach=reduce.current?0:index===0?0:1-range(cursor,index-.58,index);
         const departure=reduce.current?0:index===count-1?0:range(cursor,index+.12,index+.82);
-        const text=copyTravel(cursor,index,count-1,width,height,reduce.current),copy=Number(text.settled);
+        const copy=(reduce.current?1:(index===0?1:range(cursor,index-.18,index-.02))*(1-(index===count-1?0:range(cursor,index+.14,index+.42))));
         // Forms and choices become interactive once the camera has settled.
         // Focusing a half-revealed input must not interrupt its scroll arrival.
         writeMotionInert(panel,nearest!==index||copy<.98);writeMotionAttribute(panel,'aria-hidden',String(panel.inert));
-        writeMotionStyle(panel.style,'--copy-x',`${text.x}px`);writeMotionStyle(panel.style,'--copy-y',`${text.y}px`);
+        writeMotionStyle(panel.style,'--copy-reveal',String(copy));
         writeMotionStyle(panel.style,'--camera-scale',String(1+approach*.05+departure*.07));
         writeMotionStyle(panel.style,'--camera-x',`${reduce.current?0:(approach*.012-departure*.015)*width+px*8}px`);
         writeMotionStyle(panel.style,'--camera-y',`${reduce.current?0:(approach*.01-departure*.01)*height+py*5}px`);

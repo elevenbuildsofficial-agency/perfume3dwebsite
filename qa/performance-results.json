@@ -1,5 +1,7 @@
 {
   "environment": "Local in-app Chromium, 1440x900 CSS pixels, six-second rAF-based scroll benchmark, one-second warmup; no build/test jobs running during measurement. Not native Chrome/Edge application measurements.",
+  "scope": "Historical measurements before the requested choreography rollback. These do not benchmark the restored 4961d7a motion.",
+  "optimizedCommit": "44d9bd79f2e78cf0c18b89b54e332ef649e8c223",
   "baselineCommit": "c45054eb7bb722290418e139fbc856d469760c9b",
   "baseline": {
     "hero": {

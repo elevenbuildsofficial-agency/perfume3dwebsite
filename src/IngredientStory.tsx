@@ -3,6 +3,7 @@ import { useEffect, useRef, type CSSProperties, type MutableRefObject } from 're
 import type { StoryState } from './story';
 import { ingredientShot, range } from './cinematic';
 import { ingredientSubject } from './referenceMotion';
+import { copyTravel } from './spatialMotion';
 import { content } from './content';
 import { productGeometry } from './productGeometry';
 import styles from './IngredientStory.module.css';
@@ -18,37 +19,50 @@ export default function IngredientStory({story,onScent,onCollection}:{story:Muta
   const root=useRef<HTMLDivElement>(null),cards=useRef<(HTMLElement|null)[]>([]),subjects=useRef<(HTMLDivElement|null)[]>([]),foreground=useRef<(HTMLImageElement|null)[]>([]);
   useEffect(()=>{
     const node=root.current;if(!node)return;
-    let frame=0,lastVisible=-1,lastActive=-1,width=node.clientWidth,height=node.clientHeight;
-    const resize=()=>{width=node.clientWidth;height=node.clientHeight;};
+    let frame=0,lastVisible=-1,lastActive=-1,width=innerWidth,height=innerHeight;
+    const resize=()=>{width=innerWidth;height=innerHeight;};
     const animate=(time:number)=>{
       const s=story.current,visibility=s.ingredientVisibility??0,progress=s.ingredientProgress??0,cursor=progress*3;
       if(s.paused||document.hidden){frame=requestAnimationFrame(animate);return;}
       if(visibility<.00001&&lastVisible===0){frame=requestAnimationFrame(animate);return;}
       if(visibility!==lastVisible){
-        writeMotionStyle(node.style,'opacity',String(visibility));writeMotionStyle(node.style,'visibility',visibility<.00001?'hidden':'visible');
+        writeMotionStyle(node.style,'opacity','1');writeMotionStyle(node.style,'visibility',visibility<.00001?'hidden':'visible');writeMotionStyle(node.style,'display',visibility<.00001?'none':'block');
         lastVisible=visibility;
       }
       writeMotionInert(node,visibility<.98||(s.ingredientExit??0)>.01);writeMotionAttribute(node,'aria-hidden',String(node.inert));
       if(visibility>.00001){
         const entry=s.ingredientEntry??1,exit=s.ingredientExit??0;
+        writeMotionStyle(node.style,'transform','none');writeMotionData(node,'motion','continuous');
         const interfaceReveal=s.reduced?1:range(entry,.88,1)*(1-range(exit,0,.24));
-        writeMotionStyle(node.style,'--interface-reveal',String(interfaceReveal));
-        writeMotionStyle(node.style,'--title-reveal',String(interfaceReveal*(s.reduced?1:1-range(Math.abs(cursor-Math.round(cursor)),.10,.30))));
+        writeMotionStyle(node.style,'--interface-y',`${(1-interfaceReveal)*height}px`);
+        writeMotionStyle(node.style,'--scene-exit',String(s.reduced?0:exit));
         writeMotionData(node,'progress',progress.toFixed(4));writeMotionData(node,'active',ingredientNotes[Math.round(cursor)].id);
         writeMotionData(node,'reduced',String(s.reduced));writeMotionData(node,'aperture',visibility.toFixed(4));
         subjects.current.forEach((subject,index)=>{
           if(!subject)return;const p=ingredientSubject(cursor,index,s.reduced),h=height*(s.mobile?.30:.49)*p.scale;
           writeMotionStyle(subject.style,'width',`${h*productGeometry[index].aspect}px`);writeMotionStyle(subject.style,'height',`${h}px`);
-          writeMotionStyle(subject.style,'opacity',String(p.alpha*interfaceReveal));writeMotionStyle(subject.style,'visibility',p.alpha>.001?'visible':'hidden');
-          writeMotionStyle(subject.style,'transform',`translate3d(${width*((s.mobile?.52:.73)+p.x)+s.pointerX*9}px,${height*((s.mobile?.445:.54)+p.y)}px,0) translate(-50%,-50%) perspective(1000px) rotateY(${p.yaw}deg) rotateZ(${p.roll}deg)`);
+          writeMotionStyle(subject.style,'opacity','1');writeMotionStyle(subject.style,'visibility',p.alpha>.001?'visible':'hidden');
+          const travel = s.reduced ? 0 : (1 - entry) - exit;
+          // On narrow screens the bottle arcs around the reading area as it
+          // recedes, keeping the chapter copy and controls clear below it.
+          const orbit = p.y + travel;
+          const x = width * (s.mobile ? .52 + p.x + orbit * .94 : .73 + p.x + travel * .17) + s.pointerX * 9;
+          const y = height * (s.mobile ? .43 - Math.sin(Math.PI * Math.min(1, Math.abs(orbit))) * .07 : .54 + p.y + travel * 1.04);
+          const depth = p.z - Math.abs(travel) * 280;
+          writeMotionStyle(subject.style, 'transform', `translate3d(${x}px,${y}px,0) translate(-50%,-50%) perspective(1000px) translateZ(${depth}px) rotateX(${p.pitch + travel * 18}deg) rotateY(${p.yaw - travel * 24}deg) rotateZ(${p.roll + travel * 17}deg)`);
         });
         foreground.current.forEach((image,index)=>{
-          if(!image)return;const distance=cursor-index,alpha=s.reduced?Number(Math.round(cursor)===index):1-range(Math.abs(distance),.15,.8),turn=s.reduced?index*.8:cursor*.9+index*.8;
-          writeMotionStyle(image.style,'opacity',String(alpha*interfaceReveal*.92));writeMotionStyle(image.style,'visibility',alpha>.001?'visible':'hidden');
-          writeMotionStyle(image.style,'transform',`translate3d(${width*((s.mobile?.50:.72)+Math.sin(turn)*(s.mobile?.36:.22))}px,${height*((s.mobile?.44:.51)+Math.cos(turn)*.13)}px,0) translate(-50%,-50%) rotate(${s.reduced?0:cursor*37+index*23}deg)`);
+          if (!image) return;
+          const distance = index - cursor;
+          const turn = s.reduced ? index * .8 : cursor * .9 + index * .8;
+          const travel = s.reduced ? 0 : distance + (1 - entry) - exit;
+          const x = width * ((s.mobile ? .50 : .72) + Math.sin(turn) * (s.mobile ? .30 : .22) + travel * (s.mobile ? .92 : .15));
+          const y = height * (s.mobile ? .43 + Math.cos(turn) * .08 + travel * .05 : .51 + Math.cos(turn) * .13 + travel * 1.25);
+          writeMotionStyle(image.style, 'opacity', '1');
+          writeMotionStyle(image.style, 'visibility', (s.reduced ? Math.round(cursor) === index : Math.abs(travel) < 1) ? 'visible' : 'hidden');
+          writeMotionStyle(image.style, 'transform', `translate3d(${x}px,${y}px,0) translate(-50%,-50%) perspective(950px) rotateY(${s.reduced ? 0 : travel * 30}deg) rotateZ(${s.reduced ? 0 : cursor * 37 + index * 23}deg)`);
         });
         const active=Math.round(cursor);
-        writeMotionStyle(node.style,'--note-paper',ingredientNotes[active].colour);
         if(active!==lastActive){
           node.querySelectorAll<HTMLButtonElement>('[data-ingredient-step]').forEach((button,i)=>{
             if(i===active)writeMotionAttribute(button,'aria-current','step');else button.removeAttribute('aria-current');
@@ -58,20 +72,24 @@ export default function IngredientStory({story,onScent,onCollection}:{story:Muta
         cards.current.forEach((card,index)=>{
           if(!card)return;
           const shot=ingredientShot(cursor,index,s.reduced),distance=cursor-index;
-          writeMotionStyle(card.style,'opacity',String(shot.reveal));writeMotionStyle(card.style,'visibility',shot.visible?'visible':'hidden');
+          const text=copyTravel(cursor,index,3,width,height*(height>500?.36:1),s.reduced);
+          const visible=s.reduced?shot.visible:Math.abs(distance)<1.3;
+          writeMotionStyle(card.style,'opacity','1');writeMotionStyle(card.style,'visibility',visible?'visible':'hidden');
+          writeMotionStyle(card.style,'transform','none');
           writeMotionInert(card,!shot.visible||shot.copy<.5);writeMotionAttribute(card,'aria-hidden',String(!shot.visible||shot.copy<.5));
-          if(!shot.visible)return;
+          if(!visible)return;
           const portalZoom=s.reduced?0:(1-entry)*.08+exit*.08;
           writeMotionStyle(card.style,'--travel-scale',String(shot.scale+portalZoom));
-          writeMotionStyle(card.style,'--travel-x',`${s.reduced?0:shot.x*width+s.pointerX*15}px`);
-          writeMotionStyle(card.style,'--travel-y',`${s.reduced?0:shot.y*height+s.pointerY*10}px`);
+          writeMotionStyle(card.style,'--travel-x',`${s.reduced?0:-exit*width*.85+s.pointerX*15}px`);
+          writeMotionStyle(card.style,'--travel-y',`${s.reduced?0:(index-cursor)*height*.82-exit*height+s.pointerY*10+(1-entry)*height}px`);
           writeMotionStyle(card.style,'--travel-pitch',`${shot.pitch}deg`);
           writeMotionStyle(card.style,'--travel-yaw',`${shot.yaw}deg`);
           writeMotionStyle(card.style,'--travel-rotate',`${shot.roll}deg`);
           writeMotionStyle(card.style,'--focus-blur',`${shot.focus}px`);
-          writeMotionStyle(card.style,'--copy-reveal',String(shot.copy*interfaceReveal));
-          writeMotionStyle(card.style,'--detail-y',`${shot.copyY}px`);
-          writeMotionStyle(card.style,'--memory-y',`${s.reduced?0:-distance*height*.36}px`);
+          writeMotionStyle(card.style,'--detail-x',`${text.x}px`);
+          writeMotionStyle(card.style,'--detail-y',`${text.y+(1-interfaceReveal)*height}px`);
+          writeMotionStyle(card.style,'--memory-y',`${s.reduced?0:-distance*height*.72+(1-entry)*height-exit*height}px`);
+          writeMotionStyle(card.style,'--memory-x',`${s.reduced?0:-exit*width*1.1}px`);
           writeMotionStyle(card.style,'--memory-turn',`${s.reduced?0:index%2?-9+distance*16:9+distance*16}deg`);
           // Near specimens cross the lens faster than the subject, creating depth.
           writeMotionStyle(card.style,'--satellite-depth',`${s.reduced?0:(shot.scale-1)*75}px`);
@@ -102,12 +120,12 @@ export default function IngredientStory({story,onScent,onCollection}:{story:Muta
         <div className={styles.specimens} aria-hidden="true">
           {Array.from({length:note.count},(_,part)=><div key={part} className={`${styles.specimen} ${part===0?styles.main:styles[`satellite${part}`]}`}><img src={`/ingredients/${note.id}.webp`} alt="" loading="eager" fetchPriority="low" decoding="async" style={{'--float-delay':`${part*-2.7-index}s`,'--float-duration':`${9+part*1.3}s`} as CSSProperties}/></div>)}
         </div>
-        <div className={styles.detail}>
+        <div className={styles.detailLane}><div className={styles.detail}>
           <p className={styles.noteNumber}>0{index+1} / {note.character}</p>
           <h3>{note.name}<span>.</span></h3>
           <p className={styles.description}>{note.description}</p>
           <button className={styles.scentLink} onClick={()=>onScent(note.chapter)}>Discover {note.scent}<span aria-hidden="true">↗</span></button>
-        </div>
+        </div></div>
         <span className={styles.srOnly}>{note.alt}</span>
       </article>)}
       <div className={styles.navigationShade} aria-hidden="true"/>

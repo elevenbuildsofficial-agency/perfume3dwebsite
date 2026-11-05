@@ -23,11 +23,6 @@ export default function GroundedPlate({story,reduced}:{story:MutableRefObject<St
         const neckY=subject.y+(bottleRegistration[0].nozzle[1]-.5)*subject.height,c=neckCamera(width,height,subject.x,neckY,handoff.camera);
         writeMotionStyle(node.style,'--ledge-transform',`translate3d(${g.x}px,${g.y}px,0)`);
         writeMotionStyle(node.style,'--hero-transform',`translate(${subject.x+c.x}px,${neckY+c.y}px) scale(${c.scale}) translate(${-subject.x}px,${-neckY}px)`);
-        const weight=(chapter:number)=>Math.max(0,1-Math.abs(s.stage-chapter));
-        const left=Math.max(weight(1),weight(3)),right=weight(2);
-        writeMotionStyle(node.style,'--copy-left',String(left*handoff.settle));
-        writeMotionStyle(node.style,'--copy-right',String(right*handoff.settle));
-        writeMotionStyle(node.style,'--copy-mobile',String(Math.max(left,right)*handoff.settle));
       }
       frame=requestAnimationFrame(animate);
     };
@@ -37,6 +32,5 @@ export default function GroundedPlate({story,reduced}:{story:MutableRefObject<St
   return <div ref={root} className={styles.plate} data-reduced={reduced} aria-hidden="true" style={{'--garden-desktop':'url("/images/morrow-generated-garden.webp")','--garden-mobile':'url("/images/morrow-generated-garden-mobile.webp")'} as CSSProperties}>
     <div className={`${styles.world} ${styles.hero}`}><div className={styles.photograph}/></div>
     <div className={styles.readingLight}/>
-    <div className={styles.copyLightLeft}/><div className={styles.copyLightRight}/><div className={styles.copyLightMobile}/>
   </div>;
 }

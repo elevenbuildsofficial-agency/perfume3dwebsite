@@ -24,7 +24,7 @@ export function heroHandoff(scroll:number,reduced=false) {
   return {
     settle,
     camera:heroBeat(scroll).dolly*(1-settle),
-    haze:range(scroll,.145,.225)*(1-range(scroll,.25,.64))*.30,
+    haze:0,
     copy:range(scroll,.52,.76),
     sides:1-range(scroll,.12,.235),
   };
@@ -49,7 +49,7 @@ export function ingredientBeat(scroll:number,start:number,end:number,reduced=fal
   return {progress,visibility,cursor:progress*3,entry,exit,camera};
 }
 
-// Full-frame scenes blend over a complete outgoing shot, with restrained drift.
+// Perspective and drift for individual botanical arrangements.
 export function ingredientShot(cursor:number,index:number,reduced=false) {
   if(reduced)return {visible:Math.round(cursor)===index,reveal:Math.round(cursor)===index?1:0,scale:1,x:0,y:0,pitch:0,yaw:0,roll:0,copy:1,copyY:0,focus:0};
   const reveal=index===0?1:range(cursor,index-.58,index-.04);

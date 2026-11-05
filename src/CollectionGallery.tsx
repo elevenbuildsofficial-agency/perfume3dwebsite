@@ -9,23 +9,31 @@ import styles from './CollectionGallery.module.css';
 export default function CollectionGallery({story,onScent,onContinue}:{story:MutableRefObject<StoryState>;onScent:(index:number)=>void;onContinue:()=>void}) {
   const root=useRef<HTMLDivElement>(null),cards=useRef<(HTMLElement|null)[]>([]);
   useEffect(()=>{
-    const node=root.current;if(!node)return;let frame=0,lastKey='',wasVisible:boolean|undefined,w=node.clientWidth,h=node.clientHeight;
-    const resize=()=>{w=node.clientWidth;h=node.clientHeight;lastKey='';};
+    const node=root.current;if(!node)return;let frame=0,lastKey='',wasVisible:boolean|undefined,w=document.documentElement.clientWidth,h=innerHeight;
+    const resize=()=>{w=document.documentElement.clientWidth;h=innerHeight;lastKey='';};
     const draw=()=>{
       const s=story.current,v=s.galleryVisibility??0;
       if(s.paused||document.hidden){frame=requestAnimationFrame(draw);return;}
       if(v<.00001&&wasVisible===false){frame=requestAnimationFrame(draw);return;}
-      const key=JSON.stringify([v,s.galleryProgress,s.galleryEntry,s.galleryExit,s.reduced,w,h]);
+      const key=JSON.stringify([s.galleryProgress,s.galleryEntry,s.galleryExit,s.reduced,w,h]);
       if(key===lastKey){frame=requestAnimationFrame(draw);return;}lastKey=key;wasVisible=v>.00001;
-      writeMotionStyle(node.style,'opacity',String(v));writeMotionStyle(node.style,'visibility',v>.00001?'visible':'hidden');writeMotionInert(node,v<.98||(s.galleryExit??0)>.01);writeMotionAttribute(node,'aria-hidden',String(node.inert));
+      writeMotionStyle(node.style,'opacity','1');writeMotionStyle(node.style,'visibility',v>.00001?'visible':'hidden');writeMotionStyle(node.style,'display',v>.00001?'block':'none');writeMotionInert(node,(s.galleryEntry??0)<.999||(s.galleryExit??0)>.01);writeMotionAttribute(node,'aria-hidden',String(node.inert));
       if(v>.00001){
         const cursor=(s.galleryProgress??0)*2,ui=s.reduced?1:range(s.galleryEntry??0,.7,1)*(1-range(s.galleryExit??0,0,.3));
-        writeMotionData(node,'cursor',cursor.toFixed(4));writeMotionStyle(node.style,'--gallery-ui',String(ui));
+        const entry=s.galleryEntry??0,exit=s.galleryExit??0;
+        writeMotionData(node,'motion','continuous');
+        writeMotionData(node,'cursor',cursor.toFixed(4));writeMotionStyle(node.style,'--gallery-ui-y',`${s.reduced?0:(1-ui)*h}px`);
         writeMotionStyle(node.style,'--gallery-drift',`${s.reduced?0:-cursor*7}vw`);
+        writeMotionStyle(node.style,'--gallery-title-y',`${s.reduced?0:(1-entry)*h-exit*h*1.2}px`);
+        writeMotionStyle(node.style,'--gallery-world-y',`${s.reduced?0:(1-entry)*h-exit*h*1.2}px`);
         cards.current.forEach((card,i)=>{
           if(!card)return;const p=galleryShot(s.reduced?Math.round(cursor):cursor,i,w,h,s.reduced);
           writeMotionStyle(card.style,'visibility',p.visible?'visible':'hidden');writeMotionStyle(card.style,'width',`${p.width}px`);writeMotionStyle(card.style,'z-index',String(5-Math.round(Math.abs(i-cursor))));
-          writeMotionStyle(card.style,'transform',`translate3d(${p.x}px,${p.y}px,${p.z}px) translate(-50%,-50%) rotateY(${p.yaw}deg) rotateZ(${p.roll}deg) scale(${p.scale})`);
+          const travel = s.reduced ? 0 : 1 - entry - exit;
+          const x = p.x + travel * w * (i - 1) * .13;
+          const y = p.y + travel * h * (1.06 + i * .08);
+          const z = p.z - Math.abs(travel) * 380;
+          writeMotionStyle(card.style, 'transform', `translate3d(${x}px,${y}px,${z}px) translate(-50%,-50%) rotateX(${travel * 28}deg) rotateY(${p.yaw - travel * 27}deg) rotateZ(${p.roll + travel * (i - 1) * 18}deg) scale(${p.scale})`);
           const complete=p.x-p.width*p.scale*.5>=16&&p.x+p.width*p.scale*.5<=w-16;
           writeMotionInert(card,!p.visible||!complete);writeMotionAttribute(card,'aria-hidden',String(card.inert));
         });

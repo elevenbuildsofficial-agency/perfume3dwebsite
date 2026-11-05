@@ -137,12 +137,12 @@ export default function App({ heroModelUrl, cartCount = 0, cartOpen = false, onO
       {content.chapters.map((chapter, index) => <section id={`chapter-${index + 1}`} key={chapter.id} className={styles.section} aria-label={chapter.name}>
         <article ref={register(index + 1)} className={`${styles.panel} ${styles.chapter} ${chapter.side === 'right' ? styles.right : ''}`} inert aria-hidden="true">
           <div className={styles.chapterTop}><span>{content.ui.scrollHint}</span><span>{chapter.number} / {String(content.chapters.length).padStart(2, '0')}</span></div>
-          <div className={styles.chapterCopy}>
+          <div className={styles.chapterViewport}><div className={styles.chapterCopy}>
             <div className={styles.chapterEyebrow}><span>{chapter.number}</span><span>{chapter.name}</span><Botanical kind={chapter.botanical} /></div>
             <h2>{lines(chapter.title)}</h2><p className={styles.chapterDescription}>{chapter.description}</p>
             <ul className={styles.ingredients}>{chapter.ingredients.map((ingredient, ingredientIndex) => <li key={ingredient}><span>0{ingredientIndex + 1}</span>{ingredient}</li>)}</ul>
             <div className={styles.chapterTime}><span className={styles.smallDot} /><span>{chapter.time}</span><button className={styles.chapterBuy} onClick={() => onAddToBag(index)} aria-label={`${content.ui.addToBag}: ${chapter.name}`}><span>{content.ui.addToBag}</span><span>{chapter.priceLabel}</span><BagIcon /></button></div>
-          </div>
+          </div></div>
           <p className={styles.chapterNote}>{chapter.note}</p>
           <button className={styles.nextChapter} onClick={() => goTo(index < 2 ? index + 2 : 'ingredients')} aria-label={`${content.ui.next}: ${index < 2 ? content.chapters[index + 1].name : 'The ingredient story'}`}><Arrow down /></button>
         </article>

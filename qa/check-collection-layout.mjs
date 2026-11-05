@@ -9,10 +9,10 @@ const contentUrl=moduleUrl(await compile('content')),geometryUrl=moduleUrl(await
 const layoutCode=(await compile('collectionLayout')).replace("'./content'",JSON.stringify(contentUrl)).replace("'./productGeometry'",JSON.stringify(geometryUrl)).replace("'./cinematic'",JSON.stringify(cinematicUrl));
 const layoutUrl=moduleUrl(layoutCode),{collectionLayout}=await import(layoutUrl);
 const returnCode=(await compile('collectionReturn')).replace("'./collectionLayout'",JSON.stringify(layoutUrl)).replace("'./cinematic'",JSON.stringify(cinematicUrl));
-const {collectionReturn,outsideBottlePose}=await import(moduleUrl(returnCode));
+const {collectionReturn,ritualBottlePose}=await import(moduleUrl(returnCode));
 for(const [w,h] of [[390,844],[540,720],[1440,900]]){
-  const mobile=w<=1000,start=collectionReturn(w,h,mobile,0),green=outsideBottlePose(w,h,mobile),end=collectionReturn(w,h,mobile,1),final=collectionLayout(w,h,'final',mobile);
-  for(const key of ['x','y','height','angle'])assert(Math.abs(start[2][key]-green[key])<1e-8,'Green must start at its exact photographed stone position.');
+  const mobile=w<=1000,start=collectionReturn(w,h,mobile,0),end=collectionReturn(w,h,mobile,1),final=collectionLayout(w,h,'final',mobile);
+  for(let index=0;index<3;index++)assert.deepEqual(start[index],ritualBottlePose(w,h,mobile,index,2),'The return must start from the exact last ritual frame.');
   for(let index=0;index<3;index++)for(const key of ['x','y','height','angle'])assert(Math.abs(end[index][key]-final[index][key])<1e-8,'Every returning bottle must land in its exact collection slot.');
   const forward=Array.from({length:101},(_,i)=>collectionReturn(w,h,mobile,i/100));
   for(let i=100;i>=0;i--){assert.deepEqual(collectionReturn(w,h,mobile,i/100),forward[i]);assert.equal(forward[i][2].alpha,1,'Green must stay present throughout the return, without a dissolve swap.');}

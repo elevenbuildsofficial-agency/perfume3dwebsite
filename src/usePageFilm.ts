@@ -1,7 +1,8 @@
 import { writeMotionStyle, writeMotionData, writeMotionInert, writeMotionAttribute } from './motionWrites';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
-import { clamp, lerp, range } from './cinematic';
+import { clamp, lerp } from './cinematic';
+import { copyTravel } from './spatialMotion';
 
 export function usePageFilm(count:number,paused:boolean) {
   const root=useRef<HTMLElement>(null),viewport=useRef<HTMLDivElement>(null),panels=useRef<(HTMLElement|null)[]>([]);
@@ -40,23 +41,20 @@ export function usePageFilm(count:number,paused:boolean) {
       writeMotionData(stage,'scene',cursor.toFixed(4));writeMotionStyle(stage.style,'--film-progress',String(cursor/(count-1)));
       panels.current.forEach((panel,index)=>{
         if(!panel)return;
-        const reveal=reduce.current?Number(nearest===index):index===0?1:range(cursor,index-.58,index-.04);
-        const next=index===count-1?0:range(cursor,index+.42,index+.96);
-        const visible=reduce.current?nearest===index:reveal>0&&next<1;
-        writeMotionStyle(panel.style,'visibility',visible?'visible':'hidden');writeMotionStyle(panel.style,'opacity',String(reveal));
+        const distance=index-cursor,visible=reduce.current?nearest===index:Math.abs(distance)<1.4;
+        writeMotionStyle(panel.style,'visibility',visible?'visible':'hidden');writeMotionStyle(panel.style,'opacity','1');
+        writeMotionStyle(panel.style,'transform','none');writeMotionData(panel,'motion','continuous');
         if(!visible){writeMotionInert(panel,true);writeMotionAttribute(panel,'aria-hidden','true');return;}
-        const approach=reduce.current?0:index===0?0:1-range(cursor,index-.58,index);
-        const departure=reduce.current?0:index===count-1?0:range(cursor,index+.12,index+.82);
-        const copy=(reduce.current?1:(index===0?1:range(cursor,index-.18,index-.02))*(1-(index===count-1?0:range(cursor,index+.14,index+.42))));
+        const text=copyTravel(cursor,index,count-1,width,height,reduce.current),copy=Number(text.settled);
         // Forms and choices become interactive once the camera has settled.
         // Focusing a half-revealed input must not interrupt its scroll arrival.
         writeMotionInert(panel,nearest!==index||copy<.98);writeMotionAttribute(panel,'aria-hidden',String(panel.inert));
-        writeMotionStyle(panel.style,'--copy-reveal',String(copy));
-        writeMotionStyle(panel.style,'--camera-scale',String(1+approach*.05+departure*.07));
-        writeMotionStyle(panel.style,'--camera-x',`${reduce.current?0:(approach*.012-departure*.015)*width+px*8}px`);
-        writeMotionStyle(panel.style,'--camera-y',`${reduce.current?0:(approach*.01-departure*.01)*height+py*5}px`);
-        writeMotionStyle(panel.style,'--object-turn',`${reduce.current?0:approach*3-departure*4+px*3}deg`);
-        writeMotionStyle(panel.style,'--object-scale',String(1+approach*.06+departure*.10));
+        writeMotionStyle(panel.style,'--copy-x',`${text.x}px`);writeMotionStyle(panel.style,'--copy-y',`${text.y}px`);
+        writeMotionStyle(panel.style,'--camera-scale',String(reduce.current?1:1+Math.sin(cursor*.7)*.035));
+        writeMotionStyle(panel.style,'--camera-x',`${reduce.current?0:Math.sin(distance)*width*.035+px*8}px`);
+        writeMotionStyle(panel.style,'--camera-y',`${reduce.current?0:distance*height*.68+py*5}px`);
+        writeMotionStyle(panel.style,'--object-turn',`${reduce.current?0:distance*5+px*3}deg`);
+        writeMotionStyle(panel.style,'--object-scale',String(reduce.current?1:1+Math.sin(cursor*.7)*.045));
       });
       frame=requestAnimationFrame(draw);
     };

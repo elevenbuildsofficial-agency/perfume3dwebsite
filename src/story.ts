@@ -1,14 +1,15 @@
-import { writeMotionStyle, writeMotionInert, writeMotionAttribute } from './motionWrites';
+import { writeMotionStyle, writeMotionData, writeMotionInert, writeMotionAttribute } from './motionWrites';
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { content, worlds } from './content';
 import { galleryBeat } from './referenceMotion';
+import { copyTravel } from './spatialMotion';
 import { heroBeat, heroHandoff, range, ingredientBeat, ingredientLens, ingredientBottleStage, lifestyleBeat } from './cinematic';
 
 gsap.registerPlugin(ScrollTrigger);
-export type StoryState = { target: number; stage: number; mix: number; from: number; to: number; x: number; slosh: number; mobile: boolean; reduced: boolean; paused: boolean; pointerX: number; pointerY: number; scroll?: number; ingredientProgress?: number; ingredientVisibility?: number; ingredientEntry?:number; ingredientExit?:number; ingredientOriginX?:number; ingredientOriginY?:number; hasDay?:boolean; dayProgress?:number; dayVisibility?:number; dayEntry?:number; dayExit?:number; dayReturn?:number; dayOutside?:number; galleryProgress?:number; galleryEntry?:number; galleryExit?:number; galleryVisibility?:number; worldCovered?:boolean };
+export type StoryState = { target: number; stage: number; mix: number; from: number; to: number; x: number; slosh: number; mobile: boolean; reduced: boolean; paused: boolean; pointerX: number; pointerY: number; scroll?: number; ingredientProgress?: number; ingredientVisibility?: number; ingredientEntry?:number; ingredientExit?:number; ingredientOriginX?:number; ingredientOriginY?:number; hasDay?:boolean; dayProgress?:number; dayVisibility?:number; dayEntry?:number; dayExit?:number; dayReturn?:number; galleryProgress?:number; galleryEntry?:number; galleryExit?:number; galleryVisibility?:number; worldCovered?:boolean };
 const rgb = (hex: string) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
 const palettes = worlds.map(world => ({ bg: rgb(world.bg), ink: rgb(world.ink), a: rgb(world.a), b: rgb(world.b) }));
 const lightInk = rgb('#FFFFFF');
@@ -87,7 +88,6 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       const day=lifestyleBeat(s.scroll,dayStart,lastChapter,s.reduced);const gallery=galleryBeat(s.scroll,galleryStart,galleryEnd,s.reduced);s.galleryProgress=gallery.progress;s.galleryEntry=gallery.entry;s.galleryExit=gallery.exit;s.galleryVisibility=hasGallery?gallery.visibility:0;
       s.hasDay=hasDay;s.dayProgress=day.progress;s.dayEntry=day.entry;s.dayExit=day.exit;s.dayVisibility=hasDay?day.visibility:0;
       s.dayReturn=hasDay?day.returning:0;
-      s.dayOutside=hasDay?day.entry*(s.reduced?Number(Math.round(day.progress*2)===2):range(day.progress*2,1.42,1.96)):0;
       s.ingredientProgress=ingredients.progress;s.ingredientVisibility=hasDay?ingredients.entry*Number(ingredients.exit<1):ingredients.visibility;
       s.ingredientEntry=ingredients.entry;s.ingredientExit=ingredients.exit;
       s.worldCovered=(s.ingredientVisibility??0)>=.99999||(s.dayVisibility??0)>=.99999||(s.galleryVisibility??0)>=.99999;
@@ -120,8 +120,8 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       const ink = `rgb(${ir} ${ig} ${ib})`;
       if (ink !== lastInk) { writeMotionStyle(root.style,'--ink', ink); lastInk = ink; }
       writeMotionStyle(root.style,'--progress', String(Math.min(1,s.scroll/lastChapter)));
-      writeMotionStyle(root.style,'--bottle-visibility',(s.dayOutside??0)>.00001?'1':s.worldCovered?'0':'1');
-      writeMotionStyle(root.style,'--scene-layer',(s.dayOutside??0)>.00001?'8':'2');
+      const daily=(s.dayVisibility??0)>.00001||(s.dayReturn??0)>0;
+      writeMotionStyle(root.style,'--bottle-visibility',daily?'visible':s.worldCovered?'hidden':'visible');
       writeMotionStyle(root.style,'--ingredient-camera',ingredientLens(innerWidth,innerHeight,ingredients.camera,s.ingredientOriginX,s.ingredientOriginY).transform);
       writeMotionStyle(root.style,'--product-x', `${s.mobile ? 0 : s.x * 11}vw`);
       const nearest = Math.round(s.stage);
@@ -129,22 +129,24 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       if (navigationStep !== currentActive) { currentActive = navigationStep; setActive(navigationStep); }
       panels.current.forEach((panel, index) => {
         if (!panel) return;
-        const distance = Math.abs(s.stage - index);
-        let opacity = 1 - smooth(Math.max(0, Math.min(1, (distance - 0.12) / 0.58)));
-        if (!s.reduced && (s.scroll??0)<.76) opacity=index===0?beat.text:index===1?heroHandoff(s.scroll??0).copy:0;
-        if (!s.reduced && index>1 && index<4) opacity*=range(s.stage,index-.36,index-.08);
-        if(index===3)opacity*=1-range(ingredients.entry,.04,.28);
+        const text=copyTravel(s.stage,index,4,innerWidth,innerHeight*(s.mobile?.38:1),s.reduced);
+        let visible=text.visible,x=text.x,y=text.y;
+        if(index===0){visible=s.reduced?nearest===0:beat.text>0;x=0;y=s.reduced?0:-(1-beat.text)*innerHeight*1.1;}
+        if(!s.reduced&&index===1&&(s.scroll??0)<.76){const arrival=heroHandoff(s.scroll??0).copy;visible=arrival>0;x=0;y=(1-arrival)*innerHeight;}
+        if (index > 0 && index < 4) {
+          y -= ingredients.entry * innerHeight;
+          visible = visible && ingredients.entry < .999;
+        }
         const finalExit=hasDay?day.exit:ingredients.exit;
-        if(index===4)opacity*=s.reduced?finalExit:range(finalExit,.68,1);
-        writeMotionStyle(panel.style,'opacity',String(opacity));
-        writeMotionStyle(panel.style,'visibility',opacity < 0.001 ? 'hidden' : 'visible');
-        writeMotionStyle(panel.style,'transform',`translate3d(0,${index===0&&!s.reduced?-(1-beat.text)*75:(index-s.stage)*28}px,0)`);
+        if(index===4){const arrival=s.reduced?finalExit:range(finalExit,.30,1);visible=arrival>0;x=0;y=(1-arrival)*innerHeight;}
+        writeMotionStyle(panel.style,'opacity','1');writeMotionStyle(panel.style,'visibility',visible?'visible':'hidden');
+        writeMotionStyle(panel.style,'transform',index>0&&index<4?'none':`translate3d(${x}px,${y}px,0)`);writeMotionStyle(panel.style,'--chapter-scroll',`${index>0&&index<4?y:0}px`);writeMotionData(panel,'motion','continuous');
         writeMotionInert(panel,index !== nearest||(s.ingredientVisibility??0)>.01||(s.dayVisibility??0)>.01||(s.galleryVisibility??0)>.01);
         writeMotionAttribute(panel,'aria-hidden', String(index !== nearest||(s.ingredientVisibility??0)>.5||(s.dayVisibility??0)>.5||(s.galleryVisibility??0)>.5));
       });
       if (wordmark.current) {
-        writeMotionStyle(wordmark.current.style,'opacity',String(s.reduced?Math.max(0,1-s.stage*1.7):beat.text));
-        writeMotionStyle(wordmark.current.style,'transform',s.mobile?'none':`translate3d(0,${s.reduced?0:-(1-beat.text)*120}px,0)`);
+        writeMotionStyle(wordmark.current.style,'opacity','1');writeMotionStyle(wordmark.current.style,'visibility',(s.reduced?nearest===0:beat.text>0)?'visible':'hidden');
+        writeMotionStyle(wordmark.current.style,'transform',`translate3d(0,${s.reduced?0:-(1-beat.text)*innerHeight*1.1}px,0) scale(${s.reduced?1:1-(1-beat.text)*.12})`);
       }
       frame = requestAnimationFrame(animate);
     };
@@ -154,7 +156,7 @@ export function useStory(panels: RefObject<(HTMLElement | null)[]>, wordmark: Re
       motion.removeEventListener('change', initializeMotion); mobile.removeEventListener('change', resize);
       removeEventListener('resize',resize);
       removeEventListener('ingredientnavigate',ingredientNavigate);
-      ['--bg', '--ink', '--progress', '--product-x', '--liquid-a', '--liquid-b','--bottle-visibility','--ingredient-camera','--scene-layer'].forEach(key => root.style.removeProperty(key));
+      ['--bg', '--ink', '--progress', '--product-x', '--liquid-a', '--liquid-b','--bottle-visibility','--ingredient-camera'].forEach(key => root.style.removeProperty(key));
     };
   }, [panels, wordmark]);
 

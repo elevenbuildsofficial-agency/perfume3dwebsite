@@ -2,10 +2,6 @@
 .world{position:absolute;inset:0;transform-origin:0 0}
 .hero{transform:var(--hero-transform,none)}
 .photograph{position:absolute;inset:-16px;background-image:var(--garden-desktop);background-size:cover;background-position:center;transform:var(--ledge-transform,none);transform-origin:0 0}
-.readingLight{position:absolute;inset:0;background:linear-gradient(0deg,#f2eddfbd,transparent 26%);pointer-events:none}
-.copyLightLeft,.copyLightRight,.copyLightMobile{position:absolute;inset:0;pointer-events:none}
-.copyLightLeft{opacity:var(--copy-left,0);background:linear-gradient(90deg,#f3eddeed,#f3eddedb 29%,#f3edde70 44%,transparent 64%)}
-.copyLightRight{opacity:var(--copy-right,0);background:linear-gradient(270deg,#f3eddeed,#f3eddedb 29%,#f3edde70 44%,transparent 64%)}
-.copyLightMobile{display:none}
+.readingLight{position:absolute;inset:0;background:linear-gradient(90deg,#f3eddeba,transparent 58%),linear-gradient(0deg,#f3eddeed,transparent 55%);pointer-events:none}
 .plate[data-reduced=true] *{animation:none!important;transform:none!important}
-@media(max-width:1000px){.photograph{inset:-8px;background-image:var(--garden-mobile);background-size:auto 112%;background-position:center bottom}.readingLight{background:linear-gradient(0deg,#f2eddfde,transparent 33%)}.copyLightLeft,.copyLightRight{display:none}.copyLightMobile{display:block;opacity:var(--copy-mobile,0);background:linear-gradient(0deg,#f3eddefa,#f3eddef0 28%,#f3eddea8 39%,transparent 54%)}}
+@media(max-width:1000px){.photograph{inset:-8px;background-image:var(--garden-mobile);background-size:auto 112%;background-position:center bottom}.readingLight{background:linear-gradient(0deg,#f3eddefa,#f3eddedb 27%,#f3edde55 45%,transparent 64%)}}

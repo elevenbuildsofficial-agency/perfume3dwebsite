@@ -1,32 +1,32 @@
 .film{--scene:0;--nature:0;--material:0;--memory:0;--story-ink:#29372d;position:relative;height:680svh;color:var(--story-ink)}
 .stage{position:fixed;inset:0;overflow:hidden;pointer-events:none;isolation:isolate}
-.natureWindow{position:absolute;inset:0;z-index:1;opacity:var(--nature);clip-path:inset(var(--nature-reveal,36%) round 40% 40% 0 0);transform:scale(calc(1.13 - var(--nature)*.13));overflow:hidden}
+.natureWindow{position:absolute;inset:0;z-index:1;transform:translateX(calc((1 - var(--nature))*-112vw)) scale(calc(1.13 - var(--nature)*.13));overflow:hidden}
 .natureWindow img{width:100%;height:100%;object-fit:cover;object-position:45% 50%}
 .natureWindow:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#eff0dfb3,transparent 70%),linear-gradient(0deg,#f0ede3bd,transparent 65%)}
-.darkroom{position:absolute;inset:0;z-index:2;background:radial-gradient(ellipse at 70% 50%,#634b40 0,#36282a 32%,#171d19 78%);opacity:calc(var(--material)*.98)}
-.paperLight{position:absolute;z-index:2;inset:0;background:linear-gradient(90deg,#f0ede388 0,transparent 53%),linear-gradient(0deg,#f0ede37a,transparent 55%);opacity:calc(1 - var(--material))}
-.portal{position:absolute;z-index:3;left:52%;top:16%;width:37%;height:70%;border:1px solid #fff9;border-radius:48% 48% 3px 3px;box-shadow:inset 1px 1px 2px #fff,15px 30px 70px #29372d0b;background:linear-gradient(132deg,#ffffff5c,transparent 44%,#e9e8da33 85%,#fff7);backdrop-filter:blur(3px) saturate(1.03);transform-origin:50% 50%;opacity:var(--portal-opacity,1);transform:var(--portal-transform,none);will-change:transform,opacity}
+.darkroom{position:absolute;inset:0;z-index:2;background:radial-gradient(ellipse at 70% 50%,#634b40 0,#36282a 32%,#171d19 78%);transform:translateX(calc((1 - var(--material))*112vw))}
+.paperLight{position:absolute;z-index:2;inset:0;background:linear-gradient(90deg,#f0ede388 0,transparent 53%),linear-gradient(0deg,#f0ede37a,transparent 55%);transform:translateY(calc(var(--material)*110svh))}
+.portal{position:absolute;z-index:3;left:52%;top:16%;width:37%;height:70%;border:1px solid #fff9;border-radius:48% 48% 3px 3px;box-shadow:inset 1px 1px 2px #fff,15px 30px 70px #29372d0b;background:linear-gradient(132deg,#ffffff5c,transparent 44%,#e9e8da33 85%,#fff7);backdrop-filter:blur(3px) saturate(1.03);transform-origin:50% 50%;transform:var(--portal-transform,none);will-change:transform}
 .portal span{position:absolute;inset:12px;border:1px solid #fff5;border-radius:inherit}.portal i{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,#fff5,transparent 27%,transparent 74%,#ffffff50)}
-.typography{position:absolute;z-index:3;left:-2%;bottom:2%;font-size:min(31vw,46svh);line-height:.8;font-weight:300;letter-spacing:-.085em;white-space:nowrap;opacity:calc(.065 + var(--memory)*.035);transform:translate3d(var(--drift,0vw),calc(var(--scene)*-3vh),0);color:var(--story-ink);will-change:transform}
-.products{position:absolute;inset:0;z-index:5;mask-image:linear-gradient(180deg,#000 0%,#000 calc(95% - var(--macro-crop,0%)),transparent calc(100% - var(--macro-crop,0%)))}
-.products>img{position:absolute;left:0;top:0;height:100%;width:auto;max-width:none;object-fit:contain;will-change:transform,opacity;transform-origin:center}
+.typography{position:absolute;z-index:3;left:-2%;bottom:2%;font-size:min(31vw,46svh);line-height:.8;font-weight:300;letter-spacing:-.085em;white-space:nowrap;opacity:.08;transform:translate3d(var(--drift,0vw),calc(var(--scene)*-3vh),0);color:var(--story-ink);will-change:transform}
+.products{position:absolute;inset:0;z-index:5;overflow:clip}
+.products>img{position:absolute;left:0;top:0;height:100%;width:auto;max-width:none;object-fit:contain;will-change:transform;transform-origin:center}
 .bottle0{z-index:3;transform:translate3d(73vw,53svh,0) translate(-50%,-50%) rotate(12deg) scale(.76)}
-.bottle1{z-index:2;opacity:0}.bottle2{z-index:1;opacity:0}
-.foreground{position:absolute;z-index:7;left:-12%;top:-35%;width:58vw;max-width:none;opacity:calc(var(--nature)*.94);transform:var(--branch-transform,translateX(-50vw));will-change:transform;filter:drop-shadow(15px 25px 15px #192d1818)}
-.orbits{position:absolute;inset:0;z-index:4;opacity:var(--material);color:#e8d1a7;transform:rotate(-13deg);pointer-events:none}
+.bottle1{z-index:2;visibility:hidden}.bottle2{z-index:1;visibility:hidden}
+.foreground{position:absolute;z-index:7;left:-12%;top:-35%;width:58vw;max-width:none;opacity:1;transform:var(--branch-transform,translateX(-50vw));will-change:transform;filter:drop-shadow(15px 25px 15px #192d1818)}
+.orbits{position:absolute;inset:0;z-index:4;color:#e8d1a7;transform:rotate(-13deg) scale(var(--material));pointer-events:none}
 .orbits i{position:absolute;left:43%;top:17%;height:69%;width:49%;border:1px solid #e8d1a73d;border-radius:50%;transform:rotate(calc(var(--orbit-turn,0deg)*.13))}
 .orbits i:nth-child(2){inset:13% auto auto 40%;width:55%;height:77%;border-color:#e8d1a71a;transform:rotate(9deg)}
 .orbits i:nth-child(3){left:59%;top:12%;width:16%;height:80%;border-color:#e8d1a720;transform:rotate(37deg)}
 .orbits>span{position:absolute;left:47%;top:20%;font-size:10px;letter-spacing:.12em;text-transform:uppercase;transform:rotate(13deg)}
-.lightSweep{position:absolute;z-index:6;left:var(--scan,-80%);top:-25%;height:150%;width:16%;background:linear-gradient(90deg,transparent,#fff1 30%,#ffeedb20 50%,transparent);transform:rotate(22deg);opacity:var(--material);mix-blend-mode:screen;pointer-events:none}
-.bottomLight{position:absolute;z-index:8;bottom:0;left:0;right:0;height:16%;background:linear-gradient(0deg,#f0ede3ed,transparent);opacity:calc(1 - var(--material));pointer-events:none}
+.lightSweep{position:absolute;z-index:6;left:var(--scan,-80%);top:-25%;height:150%;width:16%;background:linear-gradient(90deg,transparent,#fff1 30%,#ffeedb20 50%,transparent);transform:rotate(22deg);mix-blend-mode:screen;pointer-events:none}
+.bottomLight{position:absolute;z-index:8;bottom:0;left:0;right:0;height:16%;background:linear-gradient(0deg,#f0ede3ed,transparent);transform:translateY(calc(var(--material)*110svh));pointer-events:none}
 .frame{position:absolute;z-index:8;inset:110px 35px 88px;opacity:.4}
 .frame i{position:absolute;width:13px;height:13px;border:0 solid currentColor}.frame i:nth-child(1){left:0;top:0;border-width:1px 0 0 1px}.frame i:nth-child(2){right:0;top:0;border-width:1px 1px 0 0}.frame i:nth-child(3){left:0;bottom:0;border-width:0 0 1px 1px}.frame i:nth-child(4){right:0;bottom:0;border-width:0 1px 1px 0}
 .topline{position:fixed;z-index:8;left:5.6%;right:5.6%;top:16%;display:flex;justify-content:space-between;font-size:11px;letter-spacing:.02em;pointer-events:none}
 .topline>span:last-child{display:flex;align-items:center;gap:12px}.topline i{height:3px;width:3px;border-radius:50%;background:currentColor}
 .topline>span{padding:6px 9px;background:#f0ede3b3;backdrop-filter:blur(7px);border-radius:20px;color:#29372d}
-.panel{position:fixed;inset:0;z-index:7;pointer-events:none;will-change:transform,opacity}
-.panel:not(:first-child){opacity:0;visibility:hidden}
+.panel{position:fixed;inset:0;z-index:7;pointer-events:none;will-change:transform}
+.panel:not(:first-child){visibility:hidden}
 .panel button,.panel a{pointer-events:auto}.panel[inert] button,.panel[inert] a{pointer-events:none}
 .copy{position:absolute;left:7%;top:29%;width:45%;max-width:700px}
 .eyebrow{display:flex;align-items:center;gap:18px;font-size:11px;letter-spacing:.01em;margin:0 0 30px}
@@ -39,7 +39,7 @@
 .scene1 .copy{left:48%;top:26%;width:45%;max-width:650px}.scene1 .copy h2{font-size:clamp(66px,min(7.4vw,12svh),110px)}
 .scene1 .description{max-width:375px}
 .poem{position:absolute;left:49%;top:66%;display:flex;flex-direction:column;gap:5px;font-size:clamp(18px,2.1vw,34px);font-weight:500;letter-spacing:-.035em;line-height:1.2}
-.poem>span{opacity:clamp(.75,calc((var(--scene) - .65)*3 - var(--line)*.18),1)}
+.poem>span{transform:translateX(calc((1 - clamp(0,(var(--scene) - .4)*2 - var(--line)*.12,1))*110vw))}
 .scene2 .copy{left:7%;top:43%;width:49%}.scene2 .copy h2{font-size:clamp(65px,min(7.3vw,12svh),125px)}
 .scene2 .description{max-width:390px}
 .fieldnote{position:absolute;right:5.6%;top:34%;width:13%;font-size:10px}.fieldnote>span{display:block;text-transform:uppercase;letter-spacing:.09em}.fieldnote i{display:block;width:100%;height:1px;background:currentColor;opacity:.45;margin:15px 0}.fieldnote p{font-size:11px;line-height:1.6;max-width:240px;margin:0}
@@ -74,10 +74,23 @@
 .film[data-reduced="true"] .panel{position:relative;min-height:900px;height:110svh;opacity:1!important;visibility:visible!important;transform:none!important;will-change:auto;color:#29372d;pointer-events:auto;border-bottom:1px solid #29372d24}.film[data-reduced="true"] .copy{top:27%;left:7%;width:44%}.film[data-reduced="true"] .description{position:static;margin-top:0;color:#29372d}
 .film[data-reduced="true"] .stillImage{display:block;position:absolute;left:56%;top:22%;height:60%;width:37%;object-fit:contain}
 .film[data-reduced="true"] .topline,.film[data-reduced="true"] .openingNote,.film[data-reduced="true"] .poem,.film[data-reduced="true"] .fieldnote,.film[data-reduced="true"] .materialNote,.film[data-reduced="true"] .signature{display:none}
-.film[data-reduced="true"] .controls{position:relative;left:auto;right:auto;bottom:auto;margin:35px 5.6%;color:#29372d}.film[data-reduced="true"] .copyright{position:relative;left:auto;bottom:auto;padding:0 5.6% 25px}.film[data-reduced="true"] .explore{position:static;width:max-content;margin-top:25px}.film[data-reduced="true"] .chapterButtons button{opacity:1}.film[data-reduced="true"] .poem>span{opacity:1}
+.film[data-reduced="true"] .controls{position:relative;left:auto;right:auto;bottom:auto;margin:35px 5.6%;color:#29372d}.film[data-reduced="true"] .copyright{position:relative;left:auto;bottom:auto;padding:0 5.6% 25px}.film[data-reduced="true"] .explore{position:static;width:max-content;margin-top:25px}.film[data-reduced="true"] .chapterButtons button{opacity:1}.film[data-reduced="true"] .poem>span{opacity:1;transform:none}
 @media(max-width:1000px){.film[data-reduced="true"] .panel{min-height:820px;height:110svh}.film[data-reduced="true"] .copy{left:25px;right:25px;width:auto;top:60%}.film[data-reduced="true"] .stillImage{left:15%;top:12%;height:44%;width:70%}.film[data-reduced="true"] .description{margin-top:0}.film[data-reduced="true"] .controls{margin:25px}.film[data-reduced="true"] .next{display:none}}
 @media(prefers-reduced-motion:reduce){.film *{transition:none!important;animation:none!important}}
 
-.memories{position:absolute;inset:0;z-index:4;perspective:1100px;transform-style:preserve-3d;pointer-events:none}.memories>div{position:absolute;left:0;top:0;width:13vw;max-width:190px;height:22svh;max-height:230px;padding:7px 7px 24px;background:#f6f0e4;box-shadow:0 15px 35px #1019121a;opacity:0;will-change:transform,opacity}.memories img{width:100%;height:100%;object-fit:cover}.memories span{position:absolute;bottom:7px;left:8px;font-size:9px;font-weight:500;color:#29372d}
+.memories{position:absolute;inset:0;z-index:4;perspective:1100px;transform-style:preserve-3d;pointer-events:none}.memories>div{position:absolute;left:0;top:0;width:13vw;max-width:190px;height:22svh;max-height:230px;padding:7px 7px 24px;background:#f6f0e4;box-shadow:0 15px 35px #1019121a;opacity:1;will-change:transform}.memories img{width:100%;height:100%;object-fit:cover}.memories span{position:absolute;bottom:7px;left:8px;font-size:9px;font-weight:500;color:#29372d}
 @media(max-width:1000px){.memories>div{width:22vw;height:16svh;padding:5px 5px 20px}.memories span{font-size:8px;left:6px;bottom:6px}}
+
+/* One uninterrupted world; only the flacons, leaves, keepsakes and copy move. */
+.natureWindow,.darkroom{display:none}
+.paperLight,.bottomLight{transform:none}
+.scene3,.scene3 .description{color:#29372d}
+.orbits{color:#60563c}.orbits i{border-color:#60563c45}
+.copy,.description{ text-shadow:0 1px 15px #f3eddd99}
 .film[data-reduced=true] .memories{display:none}
+
+.readingLane{position:absolute;inset:0;pointer-events:none}.copy{transform:translateY(var(--copy-scroll,0px))}
+@media(max-width:1000px){.readingLane{clip-path:inset(55% 0 11% 0)}.scene4 .copy{top:60%}.scene4 .description{position:static;margin:0 0 14px;font-size:13px}.scene4 .explore{position:static;min-width:220px;width:max-content;margin-top:15px;padding:13px 20px}.scene4 .copy h2{font-size:39px;margin-bottom:15px}.scene4 .copy .eyebrow{margin-bottom:12px}}
+.film[data-reduced="true"] .readingLane{clip-path:none}
+
+.panel[inert] :is(.fieldnote,.poem,.materialNote,.signature,.openingNote){visibility:hidden}

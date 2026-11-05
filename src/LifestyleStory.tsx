@@ -2,6 +2,7 @@ import { writeMotionStyle, writeMotionData, writeMotionInert, writeMotionAttribu
 import { useEffect, useRef, type CSSProperties, type MutableRefObject } from 'react';
 import type { StoryState } from './story';
 import { range } from './cinematic';
+import { copyTravel } from './spatialMotion';
 import styles from './LifestyleStory.module.css';
 
 export const dayMoments=[
@@ -14,33 +15,36 @@ export default function LifestyleStory({story,onFind,onContinue}:{story:MutableR
   const root=useRef<HTMLDivElement>(null),panels=useRef<(HTMLElement|null)[]>([]);
   useEffect(()=>{
     const node=root.current;if(!node)return;
-    let frame=0,w=node.clientWidth,h=node.clientHeight,last=-1,lastKey='',wasVisible:boolean|undefined;
-    const resize=()=>{w=node.clientWidth;h=node.clientHeight;lastKey='';};
+    let frame=0,w=innerWidth,h=innerHeight,last=-1,lastKey='',wasVisible:boolean|undefined;
+    const resize=()=>{w=innerWidth;h=innerHeight;lastKey='';};
     const draw=()=>{
       const s=story.current,v=s.dayVisibility??0,cursor=(s.dayProgress??0)*2,entry=s.dayEntry??0,returning=s.dayReturn??0;
       if(s.paused||document.hidden){frame=requestAnimationFrame(draw);return;}
       if(v<.00001&&wasVisible===false){frame=requestAnimationFrame(draw);return;}
-      const key=JSON.stringify([v,s.dayProgress,s.dayEntry,s.dayExit,s.dayReturn,s.pointerX,s.reduced,w,h]);
+      const key=JSON.stringify([s.dayProgress,s.dayEntry,s.dayExit,s.dayReturn,s.pointerX,s.reduced,w,h]);
       if(key===lastKey){frame=requestAnimationFrame(draw);return;}lastKey=key;wasVisible=v>.00001;
-      writeMotionStyle(node.style,'opacity',String(v));writeMotionStyle(node.style,'visibility',v>.00001?'visible':'hidden');writeMotionInert(node,v<.98||returning>.001);writeMotionAttribute(node,'aria-hidden',String(node.inert));
+      writeMotionStyle(node.style,'opacity','1');writeMotionStyle(node.style,'visibility',v>.00001?'visible':'hidden');writeMotionStyle(node.style,'display',v>.00001?'block':'none');writeMotionInert(node,entry<.999||returning>.001);writeMotionAttribute(node,'aria-hidden',String(node.inert));
       if(v>.00001){
-        // Every shot stays full-frame; scroll blends complete photographic scenes.
+        writeMotionStyle(node.style,'transform','none');writeMotionData(node,'motion','continuous');
         const ui=s.reduced?1:range(entry,.85,1)*(1-range(returning,0,.16));
-        writeMotionStyle(node.style,'--day-ui',String(ui));writeMotionData(node,'scene',cursor.toFixed(4));writeMotionData(node,'active',dayMoments[Math.round(cursor)].id);
+        writeMotionStyle(node.style,'--day-ui-y',`${(1-ui)*h}px`);writeMotionData(node,'scene',cursor.toFixed(4));writeMotionData(node,'active',dayMoments[Math.round(cursor)].id);
         if(last!==Math.round(cursor)){last=Math.round(cursor);node.querySelectorAll('[data-moment]').forEach((button,i)=>{if(i===last)writeMotionAttribute(button,'aria-current','step');else button.removeAttribute('aria-current');});}
         panels.current.forEach((panel,i)=>{
           if(!panel)return;
-          const reveal=s.reduced?Number(Math.round(cursor)===i):i===0?1:range(cursor,i-.58,i-.04),next=i===2?0:range(cursor,i+.42,i+.96);
-          const visible=s.reduced?Math.round(cursor)===i:reveal>0&&next<1;
-          writeMotionStyle(panel.style,'visibility',visible?'visible':'hidden');writeMotionStyle(panel.style,'opacity',String(reveal));
+          const distance=i-cursor,visible=s.reduced?Math.round(cursor)===i:Math.abs(distance)<1.4;
+          writeMotionStyle(panel.style,'visibility',visible?'visible':'hidden');writeMotionStyle(panel.style,'opacity','1');
+          writeMotionStyle(panel.style,'transform','none');
           writeMotionInert(panel,Math.round(cursor)!==i);writeMotionAttribute(panel,'aria-hidden',String(Math.round(cursor)!==i));
           if(!visible)return;
-          const arrival=s.reduced?0:i===0?0:1-range(cursor,i-.58,i),departure=s.reduced?0:i===2?0:range(cursor,i+.16,i+.82);
-          writeMotionStyle(panel.style,'--day-scale',String(1+arrival*.045+departure*.065));
-          writeMotionStyle(panel.style,'--day-x',`${s.reduced?0:(arrival*.012-departure*.015)*w+s.pointerX*7}px`);
-          writeMotionStyle(panel.style,'--day-y',`${s.reduced?0:(arrival*.01-departure*.01)*h}px`);
-          const text=ui*(s.reduced?1:(i===0?1:range(cursor,i-.17,i-.02))*(1-(i===2?0:range(cursor,i+.15,i+.41))));
-          writeMotionStyle(panel.style,'--day-copy',String(text));
+          const travel = s.reduced ? 0 : distance + (1 - entry) - returning;
+          writeMotionStyle(panel.style, '--day-x', `${s.reduced ? 0 : s.pointerX * 7 + Math.sin(travel) * w * .09}px`);
+          writeMotionStyle(panel.style, '--day-y', `${travel * h * 1.10}px`);
+          writeMotionStyle(panel.style, '--day-depth', `${-Math.min(1.5, Math.abs(travel)) * 320}px`);
+          writeMotionStyle(panel.style, '--day-turn', `${travel * -12}deg`);
+          writeMotionStyle(panel.style, '--day-pitch', `${travel * 24}deg`);
+          const text=copyTravel(cursor,i,2,w,h*(h>500?.36:1),s.reduced);
+          writeMotionStyle(panel.style,'--day-copy-x',`${text.x}px`);
+          writeMotionStyle(panel.style,'--day-copy-y',`${text.y+(1-entry)*h-returning*h*1.25}px`);
         });
       }
       frame=requestAnimationFrame(draw);
@@ -51,9 +55,9 @@ export default function LifestyleStory({story,onFind,onContinue}:{story:MutableR
   return <section id="day" className={styles.scrollSpace} aria-label="Make it part of your day"><div ref={root} className={styles.stage} inert aria-hidden="true">
     {dayMoments.map((moment,i)=><article ref={el=>{panels.current[i]=el;}} className={`${styles.panel} ${i===1?styles.evening:''}`} key={moment.id} style={{'--day-ink':moment.ink,'--day-desktop':`url(/images/day-${moment.id}${i===2?'-clean':''}.webp)`,'--day-mobile':`url(/images/day-${moment.id}${i===2?'-clean':''}-mobile.webp)`,zIndex:i+1} as CSSProperties} aria-label={moment.time} inert aria-hidden="true">
       <div className={styles.photo} role="img" aria-label={moment.imageAlt}/><div className={styles.reading}/>
-      <div className={styles.headline}><p>Small rituals / Everyday Morrow</p><h2>Make it part<br/>of your day.</h2></div>
-      <div className={styles.detail}><p className={styles.eyebrow}>0{i+1} / {moment.time}</p><h3>{moment.title}</h3><p>{moment.body}</p></div>
+      <div className={styles.detailLane}><div className={styles.detail}><p className={styles.eyebrow}>0{i+1} / {moment.time}</p><h3>{moment.title}</h3><p>{moment.body}</p></div></div>
     </article>)}
+    <div className={styles.headline}><p>Small rituals / Everyday Morrow</p><h2>Make it part<br/>of your day.</h2></div>
     <nav className={styles.moments} aria-label="Daily rituals">{dayMoments.map((moment,i)=><button key={moment.id} data-moment={i} onClick={()=>goToMoment(i)}>{moment.id==='outside'?'Outside':moment.id==='morning'?'Morning':'Evening'}</button>)}</nav>
     <button className={styles.find} onClick={onFind}>Find your kind of Morrow<span>↗</span></button><button className={styles.continue} onClick={onContinue} aria-label="Continue to the collection">↓</button>
   </div></section>;

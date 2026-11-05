@@ -12,9 +12,8 @@ export default function AboutJourney({paused,onExplore}:{paused:boolean;onExplor
   const c=content.about,chapters=c.film;
   return <main ref={root} className={styles.film} data-reduced={reduced} aria-label="The Morrow story">
     <div className={styles.stage} aria-hidden="true">
-      <AmbientBackground story={story} reduced={reduced}/>
-      <div className={styles.natureWindow}><img src={content.scene.background.image} alt=""/></div>
-      <div className={styles.darkroom}/><div className={styles.paperLight}/>
+      <AmbientBackground story={story} reduced={reduced} grounded/>
+      <div className={styles.paperLight}/>
       <div className={styles.portal}><span/><i/></div>
       <div className={styles.typography}>{c.filmBackdrop}</div>
       <div className={styles.orbits}><i/><i/><i/><span>{c.materialCaption}</span></div>
@@ -26,12 +25,12 @@ export default function AboutJourney({paused,onExplore}:{paused:boolean;onExplor
     <div className={styles.topline} aria-hidden="true"><span>{c.kicker}</span><span>{chapters[active].label}<i/> {String(active+1).padStart(2,'0')} / 05</span></div>
     <div className={styles.scenes}>
       {chapters.map((chapter,index)=><section key={chapter.label} id={`about-scene-${index}`} ref={element=>{panels.current[index]=element;}} className={`${styles.panel} ${styles[`scene${index}`]}`} aria-hidden={!reduced&&active!==index} inert={!reduced&&active!==index} aria-label={chapter.label}>
-        <div className={styles.copy}>
+        <div className={styles.readingLane}><div className={styles.copy}>
           <p className={styles.eyebrow}><span>{String(index+1).padStart(2,'0')}</span>{chapter.eyebrow}</p>
           {index===0?<h1>{lines(chapter.title)}</h1>:<h2>{lines(chapter.title)}</h2>}
           <p className={styles.description}>{chapter.body}</p>
           {index===4&&<a className={styles.explore} href="/#chapter-1" onClick={event=>{event.preventDefault();onExplore();}}>{content.ui.discover}<Arrow/></a>}
-        </div>
+        </div></div>
         {index===0&&<div className={styles.openingNote}><span>{c.openingNote}</span><button onClick={()=>goTo(1)}>{c.journeyHint}<Arrow/></button></div>}
         {index===1&&<div className={styles.poem}>{c.poem.map((line,i)=><span key={line} style={{'--line':i} as CSSProperties}>{line}</span>)}</div>}
         {index===2&&<div className={styles.fieldnote}><span>F. 03 / {content.products[2].name}</span><i/><p>{c.fieldnote}</p></div>}

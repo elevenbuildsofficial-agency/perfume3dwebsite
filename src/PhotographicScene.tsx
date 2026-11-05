@@ -1,5 +1,4 @@
 import { writeMotionData } from './motionWrites';
-import { canPaint } from './paintBounds';
 import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { content } from './content';
 import type { StoryState } from './story';
@@ -9,8 +8,9 @@ import { bottleRegistration, bottleAssets } from './bottleAssets';
 import { loadBottleSprites, type BottleSprites } from './bottleSprites';
 import { clamp, groundFrame, heroBeat, heroHandoff, HERO_HANDOFF_END, lerp, neckCamera, range, scentLift } from './cinematic';
 import styles from './PhotographicScene.module.css';
-import { collectionReturn } from './collectionReturn';
+import { collectionReturn, ritualBottlePose } from './collectionReturn';
 import { scentTravel } from './referenceMotion';
+import { canPaint } from './paintBounds';
 
 type StoryRef = MutableRefObject<StoryState>;
 type Pose = CollectionPose & { alpha: number };
@@ -29,7 +29,7 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
     const node=canvas.current,shadowNode=shadowCanvas.current;
     const ctx=node?.getContext('2d'),shadow=shadowNode?.getContext('2d');
     if(!node||!shadowNode||!ctx||!shadow)return;
-    let width=innerWidth,height=innerHeight,frame=0,live=true,previous=0,dirty=true,lastStage=-1,lastOutside=-1,lastReturn=-1;
+    let width=innerWidth,height=innerHeight,frame=0,live=true,previous=0,dirty=true,lastStage=-1,lastDayEntry=-1,lastReturn=-1,lastDay=-1;
     let shadowKey='',paintShadows=true;
     const sprites:(BottleSprites|null)[]=[null,null,null];
     let heroLayout=collectionLayout(width,height,'hero'),finalLayout=collectionLayout(width,height,'final');
@@ -40,7 +40,8 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       const ratio=Math.min(devicePixelRatio||1,content.scene.photography.pixelRatio);
       for(const element of [node,shadowNode]){element.width=Math.round(width*ratio);element.height=Math.round(height*ratio);}
       ctx.setTransform(ratio,0,0,ratio,0,0);shadow.setTransform(ratio,0,0,ratio,0,0);
-      dirty=true;shadowKey='';
+      dirty=true;
+      shadowKey='';
     };
     const pointer=(event:PointerEvent)=>{if(event.pointerType==='touch')return;tx=event.clientX/width-.5;ty=event.clientY/height-.5;};
     const pose=(stage:number,index:number):Pose=>{
@@ -48,7 +49,7 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
       const s=story.current,p=focusPose(width,height,index,s.mobile,s.reduced);
       return {...p,x:index===stage-1?p.x:(index<stage-1?-.35:1.35)*width,alpha:index===stage-1?1:0};
     };
-    const mixPose=(a:Pose,b:Pose,t:number):Pose=>({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t),height:lerp(a.height,b.height,t),angle:lerp(a.angle,b.angle,t),alpha:lerp(a.alpha,b.alpha,t)});
+    const mixPose=(a:Pose,b:Pose,t:number):Pose=>({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t),height:lerp(a.height,b.height,t),angle:lerp(a.angle,b.angle,t),alpha:t===0?a.alpha:t===1?b.alpha:1});
     const groundShadow=(p:Pose,index:number,lift:number,exit:number)=>{
       if(!paintShadows)return;
       const base=p.y+silhouetteBounds(index,p.angle).bottom*p.height,foot=p.height*productGeometry[index].aspect*bottleRegistration[index].baseWidth;
@@ -92,7 +93,7 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
         ctx.drawImage(sprite.body,-w/2,-h/2,w,h);
         if(!story.current.reduced&&exit<.999){
           const pivot=(r.capTop+r.capBottom)/2*h-h/2,capHeight=(r.capBottom-r.capTop)*h;
-          ctx.save();ctx.translate(lift*w*.055,pivot-lift*capHeight*1.2-exit*height*.9);ctx.rotate(lift*8*Math.PI/180);ctx.translate(0,-pivot);ctx.globalAlpha*=1-range(exit,.6,1);ctx.drawImage(sprite.cap,-w/2,-h/2,w,h);ctx.restore();
+          ctx.save();ctx.translate(lift*w*.055,pivot-lift*capHeight*1.2-exit*height*.9);ctx.rotate(lift*8*Math.PI/180);ctx.translate(0,-pivot);ctx.drawImage(sprite.cap,-w/2,-h/2,w,h);ctx.restore();
         }
       }
       ctx.filter='none';
@@ -124,16 +125,17 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
     const draw=(time:number)=>{
       const s=story.current,dt=Math.min(.05,(time-previous)/1000||.016);previous=time;
       if(s.paused||document.hidden){frame=requestAnimationFrame(draw);return;}
-      if(s.reduced&&!dirty&&s.stage===lastStage&&(s.dayOutside??0)===lastOutside&&(s.dayReturn??0)===lastReturn){frame=requestAnimationFrame(draw);return;}
-      dirty=false;lastStage=s.stage;lastOutside=s.dayOutside??0;lastReturn=s.dayReturn??0;
+      if(s.reduced&&!dirty&&s.stage===lastStage&&(s.dayEntry??0)===lastDayEntry&&(s.dayReturn??0)===lastReturn&&(s.dayProgress??0)===lastDay){frame=requestAnimationFrame(draw);return;}
+      dirty=false;lastStage=s.stage;lastDayEntry=s.dayEntry??0;lastReturn=s.dayReturn??0;lastDay=s.dayProgress??0;
       px=lerp(px,tx,1-Math.exp(-5*dt));py=lerp(py,ty,1-Math.exp(-5*dt));s.pointerX=s.reduced?0:px;s.pointerY=s.reduced?0:py;
       const portalBottle=pose(3,2);
       s.ingredientOriginX=portalBottle.x;
       s.ingredientOriginY=portalBottle.y+(bottleRegistration[2].nozzle[1]-.5)*portalBottle.height;
-      // The ingredient chapter completely covers the products. Keep pointer
-      // smoothing alive, but avoid repainting hidden full-resolution canvases.
-      const outside=s.dayOutside??0,returning=s.dayReturn??0;
-      if(outside<.00001&&(s.worldCovered||(s.ingredientVisibility??0)>.999)){frame=requestAnimationFrame(draw);return;}
+      // Ingredients and the gallery draw their own objects. Skip the bottle
+      // canvases while those objects have the stage.
+      const returning=s.dayReturn??0;
+      const dayVisible=(s.dayVisibility??0)>.00001||returning>0;
+      if(!dayVisible&&(s.worldCovered||(s.ingredientVisibility??0)>.999)){frame=requestAnimationFrame(draw);return;}
       ctx.clearRect(0,0,width,height);
       const scroll=s.scroll??0,beat=heroBeat(scroll,s.reduced),handoff=heroHandoff(scroll,s.reduced),ground=groundFrame(width,height,s.pointerX,s.pointerY,s.stage,s.reduced);
       const render=(poses:Pose[],lifts:number[],exits:number[],focus:number,alpha:number,camera:boolean,groundWeight=1)=>{
@@ -157,25 +159,35 @@ export default function PhotographicScene({story}:{story:StoryRef}) {
         }
         ctx.restore();shadow.restore();
       };
-      if(outside>.00001){
-        const arrival=s.reduced?0:1-range((s.dayProgress??0)*2,1.42,2);
-        const poses=collectionReturn(width,height,s.mobile,returning,arrival,s.reduced?0:s.pointerX).map(p=>({...p,alpha:p.alpha*outside}));
-        render(poses,[0,0,0],[0,0,0],0,1,false,returning);
+      if(dayVisible){
+        const cursor=(s.dayProgress??0)*2,entry=s.dayEntry??1;
+        const poses = returning > 0
+          ? collectionReturn(width, height, s.mobile, returning)
+          : [0, 1, 2].map(index => ritualBottlePose(width, height, s.mobile, index, cursor, entry, s.reduced));
+        render(poses,[0,0,0],[0,0,0],0,1,false);
       } else if(!s.reduced&&scroll<HERO_HANDOFF_END){
         const poses=[0,1,2].map(index=>{
           const p=mixPose({...heroLayout[index],alpha:1},pose(1,index),handoff.settle);
-          if(index!==0)p.alpha*=handoff.sides;
+          p.alpha=1;
+          if(index!==0)p.x=lerp(heroLayout[index].x,(index===1?-.65:1.65)*width,1-handoff.sides);
           return p;
         });
         const lift=scentLift(1,0,false),exit=range(lift,.85,1)*.58;
         render(poses,[lerp(beat.lift,lift,handoff.settle),0,0],[lerp(beat.exit,exit,handoff.settle),0,0],beat.focus,1,true);
-        // Haze recedes with the same camera; no white flash or hidden shot reset.
-        const fog=handoff.haze;
-        if(fog>.001){const g=ctx.createRadialGradient(width*.5,height*.48,0,width*.5,height*.48,Math.max(width,height)*.8);g.addColorStop(0,`rgba(255,245,218,${fog})`);g.addColorStop(.5,`rgba(248,237,210,${fog*.84})`);g.addColorStop(1,`rgba(241,233,212,${fog*.25})`);ctx.fillStyle=g;ctx.fillRect(0,0,width,height);}
       } else {
         const stage=!s.reduced&&scroll>=.30?Math.max(1,s.stage):s.stage;
         const from=Math.min(3,Math.floor(stage)),to=from+1,t=stage===s.stage?s.mix:0;
-        const poses=[0,1,2].map(index=>from>=1&&to<=3?scentTravel(pose(from,index),pose(to,index),t,width,height,s.reduced):mixPose(pose(from,index),pose(to,index),t));
+        const poses=[0,1,2].map(index=>{
+          const p=from>=1&&to<=3?scentTravel(pose(from,index),pose(to,index),t,width,height,s.reduced):mixPose(pose(from,index),pose(to,index),t);
+          if (index === 2 && !s.reduced) {
+            const departure = s.ingredientEntry ?? 0;
+            p.x -= departure * width * .18;
+            p.y -= departure * height * 1.08;
+            p.height *= 1 - departure * .21;
+            p.angle -= departure * .34;
+          }
+          return p;
+        });
         const lifts=[0,1,2].map(index=>scentLift(stage,index,s.reduced));
         render(poses,lifts,lifts.map(lift=>s.reduced?1:range(lift,.85,1)*.58),0,1,false);
       }
